@@ -1,13 +1,14 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 import { Search, ShoppingBag, Loader2 } from "lucide-react";
 
-export default function SearchPage() {
+// 1. المكون الذي يحتوي على منطق البحث الفعلي
+function SearchContent() {
   const searchParams = useSearchParams();
-  const query = searchParams.get("q");
+  const query = searchParams.get("q") || "";
   const cat = searchParams.get("cat");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,7 +16,7 @@ export default function SearchPage() {
   useEffect(() => {
     const fetchFullResults = async () => {
       setLoading(true);
-      // جلب البيانات مع العلاقات (البراند، الصور، الفئة) تماماً مثل صفحة المتجر
+
       let supabaseQuery = supabase
         .from("products")
         .select(
@@ -40,7 +41,11 @@ export default function SearchPage() {
       setLoading(false);
     };
 
-    if (query) fetchFullResults();
+    if (query) {
+      fetchFullResults();
+    } else {
+      setLoading(false);
+    }
   }, [query, cat]);
 
   if (loading)
@@ -67,17 +72,15 @@ export default function SearchPage() {
         </p>
       </div>
 
-      {/* شبكة المنتجات المستوحاة من صفحة المتجر */}
+      {/* شبكة المنتجات */}
       <main>
         {products.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {products.map((product) => {
-              // تحديد الصورة الرئيسية
               const mainImg =
                 product.product_images?.find((img) => img.is_main)?.image_url ||
                 product.product_images?.[0]?.image_url;
 
-              // حساب السعر النهائي بعد الخصم
               const discount = Number(product.discount_value || 0);
               const finalPrice =
                 product.discount_type === "percentage"
@@ -90,7 +93,6 @@ export default function SearchPage() {
                   key={product.id}
                   className="bg-white rounded-[2.5rem] border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all group flex flex-col"
                 >
-                  {/* قسم الصورة */}
                   <div className="aspect-square relative overflow-hidden bg-gray-50">
                     {mainImg && (
                       <img
@@ -99,8 +101,6 @@ export default function SearchPage() {
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       />
                     )}
-
-                    {/* شارة الخصم */}
                     {discount > 0 && (
                       <div className="absolute top-5 right-5 bg-red-500 text-white text-[10px] font-black px-3 py-1.5 rounded-full shadow-lg z-10">
                         {product.discount_type === "percentage"
@@ -110,7 +110,6 @@ export default function SearchPage() {
                     )}
                   </div>
 
-                  {/* تفاصيل المنتج */}
                   <div className="p-8 text-center flex-1 flex flex-col justify-between">
                     <div>
                       <h3 className="text-xl font-bold text-gray-800 mb-1 group-hover:text-blue-600 transition-colors line-clamp-1">
@@ -141,7 +140,6 @@ export default function SearchPage() {
             })}
           </div>
         ) : (
-          /* حالة عدم وجود نتائج */
           <div className="text-center py-32 bg-gray-50 rounded-[4rem] border-2 border-dashed border-gray-200">
             <div className="bg-white w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
               <Search size={32} className="text-gray-300" />
@@ -160,5 +158,20 @@ export default function SearchPage() {
         )}
       </main>
     </div>
+  );
+}
+
+// 2. المكون الرئيسي الذي يغلف المحتوى بـ Suspense لحل خطأ الـ Build
+export default function SearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="animate-spin text-blue-600" size={40} />
+        </div>
+      }
+    >
+      <SearchContent />
+    </Suspense>
   );
 }
