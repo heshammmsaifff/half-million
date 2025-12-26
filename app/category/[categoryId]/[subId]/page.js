@@ -36,7 +36,7 @@ export default async function SubCategoryPage({ params }) {
     return (
       <div className="p-20 text-center" dir="rtl">
         <h2 className="text-red-600 font-bold text-2xl mb-4">
-          القسم غير موجود
+          خطأ في الاتصال بالانترنت
         </h2>
         <Link href="/" className="text-blue-600 underline">
           العودة للرئيسية
