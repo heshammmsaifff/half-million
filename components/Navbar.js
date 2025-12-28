@@ -12,6 +12,7 @@ import {
   Tag,
   Loader2,
 } from "lucide-react";
+
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -90,7 +91,7 @@ export default function Navbar() {
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
       setShowDropdown(false);
-      setIsOpen(false); // إغلاق قائمة الموبايل إذا كانت مفتوحة
+      setIsOpen(false);
     }
   };
 
@@ -100,8 +101,8 @@ export default function Navbar() {
         className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 md:px-12 py-4"
         dir="rtl"
       >
-        <div className="max-w-[1600px] mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-10">
+        <div className="max-w-[1600px] mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-center gap-10 flex-shrink-0">
             <Link href="/" className="h-10">
               <img
                 src="/logo.svg"
@@ -127,7 +128,6 @@ export default function Navbar() {
                     className={isMegaMenuOpen ? "rotate-180" : ""}
                   />
                 </Link>
-                {/* Mega Menu Content (Desktop) */}
                 <div
                   className={`absolute top-full right-0 mt-0 w-[800px] bg-white shadow-2xl rounded-3xl border border-gray-50 p-8 transition-all duration-300 origin-top-right ${
                     isMegaMenuOpen
@@ -207,37 +207,102 @@ export default function Navbar() {
 
               <Link
                 href="/offers"
-                className="hover:text-black text-red-600 bg-red-100 px-3 py-2 rounded-xl transition-colors"
+                className="hover:text-black text-red-600 bg-red-100 px-3 py-2 rounded-xl transition-colors whitespace-nowrap"
               >
                 العروض الحصرية
+              </Link>
+              <Link
+                href="/cart"
+                className="hover:text-black text-gray-600  px-3 py-2 rounded-xl transition-colors whitespace-nowrap"
+              >
+                سلة التسوق
               </Link>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Desktop Search */}
-            <form
-              onSubmit={handleSearchSubmit}
-              className="hidden md:flex relative w-64"
-              ref={searchRef}
-            >
-              <div className="w-full flex items-center bg-gray-100 rounded-full px-4 py-2 focus-within:bg-white focus-within:ring-2 focus-within:ring-black/5 transition-all">
+          {/* Desktop Search Section - تم تعديل العرض هنا */}
+          <div
+            className="hidden md:flex flex-grow max-w-[600px] relative"
+            ref={searchRef}
+          >
+            <form onSubmit={handleSearchSubmit} className="w-full relative">
+              <div className="w-full flex items-center bg-gray-100 rounded-full px-5 py-2.5 focus-within:bg-white focus-within:ring-2 focus-within:ring-black/5 transition-all">
                 <input
                   type="text"
-                  placeholder="ابحث هنا..."
-                  className="bg-transparent border-none w-full px-1 text-xs focus:outline-none font-bold"
+                  placeholder="ابحث عن منتج..."
+                  className="bg-transparent border-none w-full px-1 text-sm focus:outline-none font-bold text-gray-700"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <button
                   type="submit"
-                  className="text-gray-400 hover:text-black"
+                  className="text-gray-400 hover:text-black transition-colors"
                 >
-                  <Search size={16} />
+                  <Search size={20} />
                 </button>
               </div>
-            </form>
 
+              {showDropdown && searchQuery.trim().length > 1 && (
+                <div className="absolute top-full mt-3 w-full bg-white shadow-2xl rounded-2xl border border-gray-100 overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+                  {isSearching ? (
+                    <div className="p-8 flex flex-col items-center justify-center gap-3">
+                      <Loader2 size={24} className="animate-spin text-black" />
+                      <span className="text-xs font-bold text-gray-400">
+                        جاري البحث...
+                      </span>
+                    </div>
+                  ) : results.length > 0 ? (
+                    <div className="flex flex-col">
+                      {results.map((p) => (
+                        <Link
+                          key={p.id}
+                          href={`/product/${p.id}`}
+                          className="flex items-center gap-4 p-4 hover:bg-gray-50 border-b border-gray-50 last:border-0 transition-all group"
+                        >
+                          <div className="w-12 h-12 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+                            <img
+                              src={p.product_images?.[0]?.image_url}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                              alt={p.name}
+                            />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <span className="text-sm font-black text-gray-800 group-hover:text-black">
+                              {p.name}
+                            </span>
+                            <span className="text-xs font-bold text-emerald-600">
+                              {p.base_price} ج.م
+                            </span>
+                          </div>
+                          <ChevronLeft
+                            size={16}
+                            className="ms-auto opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all text-gray-400"
+                          />
+                        </Link>
+                      ))}
+                      <button
+                        onClick={handleSearchSubmit}
+                        className="p-4 bg-gray-50 text-center text-xs font-black text-gray-600 hover:text-black hover:bg-gray-100 transition-colors"
+                      >
+                        عرض جميع النتائج لـ "{searchQuery}"
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="p-10 text-center flex flex-col items-center gap-3">
+                      <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center">
+                        <Search size={20} className="text-gray-300" />
+                      </div>
+                      <p className="text-sm font-bold text-gray-400">
+                        لا توجد نتائج تطابق "{searchQuery}"
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </form>
+          </div>
+
+          <div className="flex items-center gap-2 flex-shrink-0">
             <button className="p-2 text-gray-700 hover:bg-gray-50 rounded-full">
               <User size={20} />
             </button>
@@ -275,12 +340,11 @@ export default function Navbar() {
           onClick={() => setIsOpen(false)}
         />
         <div
-          className={`absolute top-0 right-0 h-full w-[85%] max-w-sm bg-white transition-transform duration-300 p-6 flex flex-col ${
+          className={`absolute top-0 right-0 h-full w-[85%] max-sm:w-full max-w-sm bg-white transition-transform duration-300 p-6 flex flex-col ${
             isOpen ? "translate-x-0" : "translate-x-full"
           }`}
           dir="rtl"
         >
-          {/* Header Mobile Menu */}
           <div className="flex items-center justify-between mb-6">
             <Link href="/" onClick={() => setIsOpen(false)} className="h-8">
               <img
@@ -297,7 +361,6 @@ export default function Navbar() {
             </button>
           </div>
 
-          {/* Search Bar in Mobile Menu */}
           <form onSubmit={handleSearchSubmit} className="mb-6 relative">
             <div className="relative flex items-center">
               <input
@@ -307,9 +370,7 @@ export default function Navbar() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              {/* أيقونة البحث الثابتة على اليمين */}
               <Search className="absolute right-4 text-gray-400" size={18} />
-              {/* زر البحث (التنفيذ) على اليسار */}
               <button
                 type="submit"
                 className="absolute left-2 bg-black text-white p-2 rounded-xl hover:bg-gray-800 transition-colors"
@@ -318,7 +379,6 @@ export default function Navbar() {
               </button>
             </div>
 
-            {/* قائمة نتائج البحث السريع في الموبايل */}
             {showDropdown && searchQuery.length > 1 && (
               <div className="absolute top-full right-0 left-0 mt-2 bg-white shadow-xl rounded-2xl border border-gray-100 overflow-hidden z-[110]">
                 {isSearching ? (
@@ -331,7 +391,7 @@ export default function Navbar() {
                       <Link
                         key={p.id}
                         href={`/product/${p.id}`}
-                        onClick={() => setIsOpen(false)} // إغلاق المنيو عند اختيار منتج
+                        onClick={() => setIsOpen(false)}
                         className="flex items-center gap-3 p-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 transition-colors"
                       >
                         <img
@@ -344,7 +404,7 @@ export default function Navbar() {
                             {p.name}
                           </span>
                           <span className="text-[10px] text-gray-400">
-                            {p.base_price} ر.س
+                            {p.base_price} ج.م
                           </span>
                         </div>
                       </Link>
@@ -378,10 +438,15 @@ export default function Navbar() {
             >
               العروض الحصرية <Tag size={18} />
             </Link>
+            <Link
+              href="/cart"
+              className="flex items-center justify-between font-black text-gray-800 p-4 bg-gray-50 rounded-2xl"
+            >
+              سلة التسوق <ShoppingCart size={18} />
+            </Link>
 
             <div className="h-px bg-gray-100 my-4" />
 
-            {/* الأقسام Mobile */}
             <p className="text-[10px] font-black text-gray-400 uppercase px-4 mb-2">
               الأقسام
             </p>
@@ -391,22 +456,18 @@ export default function Navbar() {
                 className="border-b border-gray-50 last:border-0"
               >
                 <div className="flex items-center justify-between bg-white rounded-xl">
-                  <Link
-                    href={`/category/${cat.id}`}
-                    className="flex-1 p-4 text-sm font-bold text-gray-700 text-right"
-                  >
+                  <span className="flex-1 p-4 text-sm font-bold text-gray-700 text-right">
                     {cat.name}
-                  </Link>
+                  </span>
                   <button
                     onClick={() =>
                       setOpenMobileCat(openMobileCat === cat.id ? null : cat.id)
                     }
                     className={`p-4 border-r border-gray-50 transition-colors ${
                       openMobileCat === cat.id
-                        ? "bg-black text-white"
-                        : "text-gray-300"
+                        ? "bg-black rounded-[20px] text-white"
+                        : "text-gray-300 bg-gray-400 rounded-[20px]"
                     }`}
-                    title="افتح القائمة"
                   >
                     <ChevronDown
                       size={18}
@@ -438,7 +499,6 @@ export default function Navbar() {
 
             <div className="h-px bg-gray-100 my-4" />
 
-            {/* الماركات Mobile */}
             <p className="text-[10px] font-black text-gray-400 uppercase px-4 mb-2">
               الماركات التجارية
             </p>
@@ -453,7 +513,9 @@ export default function Navbar() {
                 <button
                   onClick={() => setIsMobileBrandsOpen(!isMobileBrandsOpen)}
                   className={`p-4 border-r border-gray-50 transition-colors ${
-                    isMobileBrandsOpen ? "bg-black text-white" : "text-gray-300"
+                    isMobileBrandsOpen
+                      ? "bg-black text-white rounded-[20px]"
+                      : "text-gray-300 bg-gray-400 rounded-[20px]"
                   }`}
                 >
                   <ChevronDown

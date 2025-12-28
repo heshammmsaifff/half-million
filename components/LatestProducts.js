@@ -126,7 +126,7 @@ export default function LatestProducts() {
                 </div>
 
                 <div className="text-right px-2 mb-20">
-                  <h3 className="font-bold text-gray-800 text-sm line-clamp-1 transition-colors group-hover:text-blue-600">
+                  <h3 className="font-bold text-gray-800 text-sm line-clamp-1 transition-colors group-hover:text-gray-600">
                     {product.name}
                   </h3>
                   <div className="flex items-center gap-2 mt-1">
