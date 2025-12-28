@@ -1,42 +1,46 @@
-"use client";
-
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
 import Navbar from "@/components/Navbar";
-import { usePathname } from "next/navigation"; // استيراد معرف المسار
+import { CartProvider } from "@/context/CartContext";
+import { Cairo } from "next/font/google";
+import { Toaster } from "react-hot-toast";
+import Footer from "@/components/Footer";
+
+const cairo = Cairo({
+  subsets: ["arabic", "latin"],
+  weight: ["200", "300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
+});
+
+export const metadata = {
+  title: "Half Million | الجمال والصحة",
+  description: "أفضل منتجات الفيتامينات والتجميل العالمية",
+};
 
 export default function RootLayout({ children }) {
-  const pathname = usePathname(); // الحصول على المسار الحالي
-
-  // التحقق مما إذا كنا في الصفحة الرئيسية
-  const isHomePage = pathname === "/";
-
   return (
     <html lang="ar" dir="rtl">
-      <head>
-        <title>Half Million</title>
-      </head>
-      <body className="bg-gray-50/50 antialiased">
-        <div className="flex min-h-screen">
-          {/* عرض السايدبار في الشاشات الكبيرة فقط إذا كانت الصفحة هي الرئيسية */}
-          {isHomePage && (
-            <div className="hidden lg:block w-72 shrink-0 border-l border-gray-100 bg-white">
-              <Sidebar />
-            </div>
-          )}
-
-          <main className="flex-1 w-full relative overflow-x-hidden">
+      <body className={`${cairo.className} bg-white antialiased`}>
+        {/* التغليف بـ CartProvider يضمن وصول البيانات لكل الصفحات */}
+        <CartProvider>
+          <Toaster
+            position="top-center"
+            reverseOrder={false}
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: "#000",
+                color: "#fff",
+                borderRadius: "16px",
+                fontWeight: "bold",
+              },
+            }}
+          />
+          <div className="flex flex-col min-h-screen">
             <Navbar />
-            <div className="p-0">{children}</div>
-          </main>
-
-          {/* السايدبار الخاص بالموبايل (القائمة الجانبية التي تفتح وتغلق) */}
-          {/* نتركه هنا ليعمل زر المنيو في Navbar بجميع الصفحات، 
-              أو يمكنك لفه بـ isHomePage أيضاً إذا أردت إخفاءه تماماً من الموبايل في الصفحات الأخرى */}
-          <div className="lg:hidden">
-            <Sidebar />
+            <main className="flex-1 w-full">{children}</main>
+            <Footer />
           </div>
-        </div>
+        </CartProvider>
       </body>
     </html>
   );

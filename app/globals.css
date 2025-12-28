@@ -1,1 +1,89 @@
 @import "tailwindcss";
+
+/* حاوية البراندات السوداء */
+.brands-marquee-container {
+  background-color: rgba(0, 0, 0, 0.893);
+  padding: 1.5rem 0; /* زيادة بسيطة في ارتفاع الحاوية لتناسب الحجم الجديد */
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* المسار الذي يحتوي على الصور */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  /* السرعة 5s قد تكون سريعة جداً بعد زيادة المسافات، يمكنك تجربتها */
+  animation: scroll-right 8s linear infinite;
+}
+
+.brands-marquee-container:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes scroll-right {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* التدرج الجانبي */
+.brands-marquee-container::before,
+.brands-marquee-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 150px;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.brands-marquee-container::before {
+  left: 0;
+  background: linear-gradient(to right, black, transparent);
+}
+
+.brands-marquee-container::after {
+  right: 0;
+  background: linear-gradient(to left, black, transparent);
+}
+
+/* --- التعديل هنا لزيادة المسافة --- */
+.brand-item {
+  padding: 0 4rem; /* تم زيادة المسافة من 1.5rem إلى 4rem */
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.brand-item:hover {
+  transform: scale(1.1);
+}
+
+.brand-img {
+  height: 75px;
+  width: auto;
+  object-fit: contain;
+  transition: 0.3s ease;
+}
+
+/* استجابة الموبايل */
+@media (max-width: 768px) {
+  .brand-img {
+    height: 50px; /* تقليل الحجم قليلاً للموبايل ليناسب الشاشة */
+  }
+  .brand-item {
+    padding: 0 2rem; /* مسافة متوسطة للموبايل */
+  }
+  .brands-marquee-container::before,
+  .brands-marquee-container::after {
+    width: 60px;
+  }
+}

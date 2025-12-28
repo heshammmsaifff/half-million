@@ -41,7 +41,7 @@ export default function HeroSection() {
 
   return (
     <section
-      className="relative w-full max-w-[1400px] mx-auto px-4 py-6"
+      className="relative w-full max-w-[1400px] mx-auto pt-0.5"
       dir="rtl"
     >
       <Swiper
@@ -61,7 +61,7 @@ export default function HeroSection() {
           prevEl: ".hero-prev",
         }}
         modules={[Autoplay, Pagination, Navigation, EffectFade]}
-        className="mySwiper rounded-[2.5rem] overflow-hidden shadow-2xl h-[400px] md:h-[550px]"
+        className="mySwiper  overflow-hidden shadow-2xl h-[400px] md:h-[550px]"
       >
         {slides.map((slide) => (
           <SwiperSlide key={slide.id} className="relative w-full h-full">
@@ -84,7 +84,7 @@ export default function HeroSection() {
               {slide.link_url && (
                 <a
                   href={slide.link_url}
-                  className="group flex items-center gap-3 bg-white text-black px-8 py-3 md:py-4 rounded-full font-bold text-lg hover:bg-blue-600 hover:text-white transition-all duration-300 transform hover:scale-105 shadow-xl"
+                  className="group flex items-center gap-3 bg-white text-black px-8 py-3 md:py-4 rounded-full font-bold text-lg hover:bg-gray-600 hover:text-white transition-all duration-300 transform hover:scale-105 shadow-xl"
                 >
                   اكتشف الآن
                   <ArrowLeftCircle className="w-6 h-6 transform group-hover:-translate-x-2 transition-transform" />

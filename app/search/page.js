@@ -3,171 +3,153 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
-import { Search, ShoppingBag, Loader2 } from "lucide-react";
+import { Search, ShoppingBag, Loader2, Tag, Filter } from "lucide-react";
 
-// 1. المكون الذي يحتوي على منطق البحث الفعلي
 function SearchContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get("q") || "";
-  const cat = searchParams.get("cat");
+  const catFilter = searchParams.get("cat") || "all";
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchFullResults = async () => {
+    const fetchResults = async () => {
       setLoading(true);
-
-      let supabaseQuery = supabase
+      let q = supabase
         .from("products")
-        .select(
-          `
-          *,
-          brands (name),
-          product_images (image_url, is_main),
-          sub_categories (id, name, category_id)
-        `
-        )
+        .select(`*, brands(name), product_images(image_url, is_main)`)
         .ilike("name", `%${query}%`);
 
-      if (cat && cat !== "all") {
-        supabaseQuery = supabaseQuery.eq("subcategory_id", cat);
+      if (catFilter === "offers") {
+        q = q.gt("discount_value", 0);
+      } else if (catFilter !== "all") {
+        q = q.eq("subcategory_id", catFilter);
       }
 
-      const { data, error } = await supabaseQuery.order("created_at", {
-        ascending: false,
-      });
-
+      const { data, error } = await q.order("created_at", { ascending: false });
       if (!error) setProducts(data || []);
       setLoading(false);
     };
 
-    if (query) {
-      fetchFullResults();
-    } else {
-      setLoading(false);
-    }
-  }, [query, cat]);
+    if (query || catFilter !== "all") fetchResults();
+    else setLoading(false);
+  }, [query, catFilter]);
 
   if (loading)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <Loader2 className="animate-spin text-blue-600" size={40} />
-        <p className="font-bold text-gray-500">جاري البحث في المتجر...</p>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+        <Loader2 className="animate-spin text-blue-600" size={48} />
+        <p className="font-black text-gray-400">جاري فحص الرفوف...</p>
       </div>
     );
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-8 text-right" dir="rtl">
-      {/* هيدر صفحة البحث */}
-      <div className="mb-10">
-        <div className="flex items-center gap-4 mb-2">
-          <div className="p-3 bg-blue-50 rounded-2xl">
-            <Search className="text-blue-600" size={28} />
+    <div className="max-w-7xl mx-auto p-6 md:p-12 text-right" dir="rtl">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-gray-100 pb-10">
+        <div>
+          <div className="flex items-center gap-3 mb-4">
+            <span className="bg-blue-600 text-white p-2 rounded-xl">
+              <Search size={24} />
+            </span>
+            <h1 className="text-4xl font-black text-gray-900">نتائج البحث</h1>
           </div>
-          <h1 className="text-3xl font-black text-gray-900">نتائج البحث</h1>
+          <p className="text-gray-500 font-bold">
+            عرض <span className="text-blue-600">{products.length}</span> منتج
+            بحثاً عن
+            <span className="text-black underline px-2">"{query}"</span>
+            {catFilter !== "all" && (
+              <span className="bg-gray-100 px-3 py-1 rounded-lg text-xs mr-2">
+                تصفية: {catFilter === "offers" ? "العروض" : "قسم خاص"}
+              </span>
+            )}
+          </p>
         </div>
-        <p className="text-gray-500 font-medium mr-16">
-          وجدنا {products.length} نتيجة لـ{" "}
-          <span className="text-blue-600 font-black">"{query}"</span>
-        </p>
       </div>
 
-      {/* شبكة المنتجات */}
-      <main>
-        {products.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products.map((product) => {
-              const mainImg =
-                product.product_images?.find((img) => img.is_main)?.image_url ||
-                product.product_images?.[0]?.image_url;
+      {products.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {products.map((product) => {
+            const mainImg =
+              product.product_images?.find((img) => img.is_main)?.image_url ||
+              product.product_images?.[0]?.image_url;
+            const discount = Number(product.discount_value || 0);
+            const finalPrice =
+              product.discount_type === "percentage"
+                ? product.base_price * (1 - discount / 100)
+                : product.base_price - discount;
 
-              const discount = Number(product.discount_value || 0);
-              const finalPrice =
-                product.discount_type === "percentage"
-                  ? product.base_price - product.base_price * (discount / 100)
-                  : product.base_price - discount;
-
-              return (
-                <Link
-                  href={`/product/${product.id}`}
-                  key={product.id}
-                  className="bg-white rounded-[2.5rem] border border-gray-100 overflow-hidden shadow-sm hover:shadow-xl transition-all group flex flex-col"
-                >
-                  <div className="aspect-square relative overflow-hidden bg-gray-50">
-                    {mainImg && (
-                      <img
-                        src={mainImg}
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                      />
-                    )}
+            return (
+              <Link
+                href={`/product/${product.id}`}
+                key={product.id}
+                className="group bg-white rounded-[2rem] border border-gray-100 overflow-hidden hover:shadow-2xl transition-all flex flex-col"
+              >
+                <div className="aspect-[4/5] relative overflow-hidden bg-gray-50">
+                  <img
+                    src={mainImg}
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                  {discount > 0 && (
+                    <div className="absolute top-4 right-4 bg-red-600 text-white text-[10px] font-black px-4 py-2 rounded-full shadow-xl">
+                      وفر{" "}
+                      {product.discount_type === "percentage"
+                        ? `${discount}%`
+                        : `${discount} ج.م`}
+                    </div>
+                  )}
+                </div>
+                <div className="p-6 text-center">
+                  <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2 block">
+                    {product.brands?.name}
+                  </span>
+                  <h3 className="text-lg font-black text-gray-800 mb-4 group-hover:text-blue-600 transition-colors line-clamp-1">
+                    {product.name}
+                  </h3>
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="text-2xl font-black text-gray-900">
+                      {finalPrice.toLocaleString()}{" "}
+                      <span className="text-xs">ج.م</span>
+                    </div>
                     {discount > 0 && (
-                      <div className="absolute top-5 right-5 bg-red-500 text-white text-[10px] font-black px-3 py-1.5 rounded-full shadow-lg z-10">
-                        {product.discount_type === "percentage"
-                          ? `خصم ${discount}%`
-                          : `خصم ${discount} ج.م`}
+                      <div className="text-sm text-gray-300 line-through font-bold">
+                        {product.base_price.toLocaleString()} ج.م
                       </div>
                     )}
                   </div>
-
-                  <div className="p-8 text-center flex-1 flex flex-col justify-between">
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-800 mb-1 group-hover:text-blue-600 transition-colors line-clamp-1">
-                        {product.name}
-                      </h3>
-                      <p className="text-xs text-gray-400 font-medium mb-5">
-                        من منتجات{" "}
-                        <span className="text-blue-500 text-xl">
-                          {product.brands?.name || "Half Million"}
-                        </span>
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col items-center justify-center gap-1">
-                      <span className="text-2xl font-black text-gray-900">
-                        {finalPrice.toLocaleString()}{" "}
-                        <small className="text-xs font-normal">ج.م</small>
-                      </span>
-                      {discount > 0 && (
-                        <span className="text-sm text-gray-300 line-through font-bold">
-                          {product.base_price.toLocaleString()} ج.م
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="text-center py-24 bg-gray-50 rounded-[3rem] border-2 border-dashed border-gray-200">
+          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm text-gray-300">
+            <Search size={40} />
           </div>
-        ) : (
-          <div className="text-center py-32 bg-gray-50 rounded-[4rem] border-2 border-dashed border-gray-200">
-            <div className="bg-white w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-              <Search size={32} className="text-gray-300" />
-            </div>
-            <p className="text-gray-400 font-black text-xl mb-4">
-              للأسف، لم نجد أي منتج يطابق بحثك
-            </p>
-            <Link
-              href="/all-products"
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
-            >
-              <ShoppingBag size={20} />
-              تصفح المتجر بالكامل
-            </Link>
-          </div>
-        )}
-      </main>
+          <h2 className="text-2xl font-black text-gray-800 mb-2">عذراً</h2>
+          <p className="text-gray-500 font-bold mb-8">
+            لم نجد أي منتج يطابق هذا البحث، جرب كلمات أخرى
+          </p>
+          <Link
+            href="/all-products"
+            className="bg-black text-white px-10 py-4 rounded-2xl font-black hover:bg-gray-600 transition-all"
+          >
+            تصفح كل المنتجات
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
 
-// 2. المكون الرئيسي الذي يغلف المحتوى بـ Suspense لحل خطأ الـ Build
 export default function SearchPage() {
   return (
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center">
-          <Loader2 className="animate-spin text-blue-600" size={40} />
+          <Loader2 className="animate-spin" />
         </div>
       }
     >

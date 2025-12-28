@@ -6,243 +6,394 @@ import {
   ShoppingCart,
   User,
   ChevronDown,
+  X,
+  ArrowLeft,
+  ChevronLeft,
+  Tag,
   Loader2,
 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // استيراد موجه الصفحات
+import { useRouter, usePathname } from "next/navigation";
+import { useCart } from "@/context/CartContext";
+import CartSidebar from "./CartSidebar";
 
 export default function Navbar() {
-  const [subCategories, setSubCategories] = useState([]);
-  const [selectedSubCat, setSelectedSubCat] = useState("all");
+  const [isOpen, setIsOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+
+  const [openMobileCat, setOpenMobileCat] = useState(null);
+  const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
+  const [isBrandsMenuOpen, setIsBrandsMenuOpen] = useState(false);
+
+  // تم التعديل هنا ليتوافق مع الـ Context المحدث
+  const { cart } = useCart();
+
   const searchRef = useRef(null);
   const router = useRouter();
+  const pathname = usePathname();
 
-  // 1. جلب الفئات الفرعية
   useEffect(() => {
-    const fetchSubCats = async () => {
-      const { data } = await supabase.from("sub_categories").select("id, name");
-      if (data) setSubCategories(data);
-    };
-    fetchSubCats();
+    setIsOpen(false);
+    setIsCartOpen(false);
+    setIsMegaMenuOpen(false);
+    setIsBrandsMenuOpen(false);
+    setShowDropdown(false);
+    setSearchQuery("");
+  }, [pathname]);
 
-    const handleClickOutside = (e) => {
-      if (searchRef.current && !searchRef.current.contains(e.target)) {
-        setShowDropdown(false);
-      }
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data: catData } = await supabase
+        .from("main_categories")
+        .select("id, name, sub_categories(id, name)");
+      setCategories(catData || []);
+
+      const { data: brandData } = await supabase
+        .from("brands")
+        .select("id, name, image_url")
+        .limit(12);
+      setBrands(brandData || []);
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    fetchData();
   }, []);
 
-  // 2. منطق البحث الحي (Debounced Search)
   useEffect(() => {
     const delayDebounce = setTimeout(async () => {
       if (searchQuery.trim().length > 1) {
         setIsSearching(true);
         setShowDropdown(true);
-
-        try {
-          let query = supabase
-            .from("products")
-            .select(
-              `
-              id, 
-              name, 
-              base_price, 
-              subcategory_id,
-              product_images(image_url) 
-            `
-            )
-            .eq("product_images.is_main", true)
-            .ilike("name", `%${searchQuery}%`);
-
-          if (selectedSubCat !== "all") {
-            query = query.eq("subcategory_id", selectedSubCat);
-          }
-
-          const { data, error } = await query.limit(5);
-
-          if (error) {
-            console.error("Supabase Error:", error);
-            setResults([]);
-          } else {
-            setResults(data || []);
-          }
-        } catch (err) {
-          console.error("Search Error:", err);
-        } finally {
-          setIsSearching(false);
-        }
+        const { data } = await supabase
+          .from("products")
+          .select(`id, name, base_price, product_images(image_url)`)
+          .eq("product_images.is_main", true)
+          .ilike("name", `%${searchQuery}%`)
+          .limit(5);
+        setResults(data || []);
+        setIsSearching(false);
       } else {
         setResults([]);
         setShowDropdown(false);
+        setIsSearching(false);
       }
     }, 400);
-
     return () => clearTimeout(delayDebounce);
-  }, [searchQuery, selectedSubCat]);
+  }, [searchQuery]);
 
-  // دالة التوجيه لصفحة البحث الكاملة
-  const handleViewAll = () => {
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
     if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
       setShowDropdown(false);
-      router.push(
-        `/search?q=${encodeURIComponent(searchQuery)}&cat=${selectedSubCat}`
-      );
     }
   };
 
   return (
-    <nav
-      className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm px-4 lg:px-8 py-3"
-      dir="rtl"
-    >
-      <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-8">
-        {/* اللوجو */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => window.dispatchEvent(new Event("open-sidebar"))}
-            className="lg:hidden p-2 hover:bg-gray-100 rounded-lg text-gray-600"
-          >
-            <Menu size={24} />
-          </button>
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold italic shadow-md shadow-blue-200">
-              H
-            </div>
-            <span className="font-black text-xl hidden sm:block tracking-tighter text-gray-900">
-              Half Million
-            </span>
-          </Link>
-        </div>
-
-        {/* شريط البحث */}
-        <div
-          className="hidden lg:flex flex-1 max-w-2xl relative"
-          ref={searchRef}
-        >
-          <div className="w-full flex items-center bg-gray-50 border border-gray-100 rounded-2xl p-1 focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:bg-white focus-within:border-blue-200 transition-all">
-            <div className="relative border-l border-gray-200 ml-2">
-              <select
-                value={selectedSubCat}
-                onChange={(e) => setSelectedSubCat(e.target.value)}
-                className="appearance-none bg-transparent py-2 pl-8 pr-4 text-sm font-bold text-gray-600 cursor-pointer focus:outline-none min-w-[150px]"
-              >
-                <option value="all">جميع الأصناف</option>
-                {subCategories.map((sub) => (
-                  <option key={sub.id} value={sub.id}>
-                    {sub.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                className="absolute left-2 top-2.5 text-gray-400 pointer-events-none"
-                size={16}
+    <>
+      <nav
+        className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 md:px-12 py-4"
+        dir="rtl"
+      >
+        <div className="max-w-[1600px] mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-10">
+            <Link
+              href="/"
+              className="text-2xl font-black tracking-tighter text-black"
+            >
+              <img
+                src="/logo.svg"
+                alt="Half Million"
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  e.target.style.display = "none";
+                  e.target.nextSibling.style.display = "block";
+                }}
               />
-            </div>
+            </Link>
 
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleViewAll()}
-              placeholder="ابحث عن منتجك المفضل..."
-              className="flex-1 bg-transparent border-none py-2 px-4 text-sm focus:outline-none text-gray-700 font-medium"
-            />
-
-            <div className="flex items-center pr-2 gap-2">
-              {isSearching ? (
-                <Loader2 className="animate-spin text-blue-600" size={18} />
-              ) : (
-                <Search className="text-gray-400" size={18} />
-              )}
-              <button
-                onClick={handleViewAll}
-                className="bg-blue-600 text-white px-5 py-2 rounded-xl hover:bg-blue-700 transition-all font-bold text-sm shadow-md shadow-blue-100"
+            <div className="hidden lg:flex items-center gap-8 text-[13px] font-bold text-gray-700">
+              <div
+                className="relative h-full py-2 group"
+                onMouseEnter={() => setIsMegaMenuOpen(true)}
+                onMouseLeave={() => setIsMegaMenuOpen(false)}
               >
-                بحث
-              </button>
+                <Link
+                  href="/all-products"
+                  className="flex items-center gap-1 hover:text-black"
+                >
+                  المتجر{" "}
+                  <ChevronDown
+                    size={14}
+                    className={isMegaMenuOpen ? "rotate-180" : ""}
+                  />
+                </Link>
+                <div
+                  className={`absolute top-full right-0 mt-0 w-[800px] bg-white shadow-2xl rounded-3xl border border-gray-50 p-8 transition-all duration-300 origin-top-right ${
+                    isMegaMenuOpen
+                      ? "opacity-100 visible translate-y-0"
+                      : "opacity-0 invisible -translate-y-2"
+                  }`}
+                >
+                  <div className="grid grid-cols-4 gap-8">
+                    {categories.map((mainCat) => (
+                      <div key={mainCat.id}>
+                        <h3 className="text-black font-black text-sm border-r-4 border-black pr-3 mb-4">
+                          {mainCat.name}
+                        </h3>
+                        <div className="flex flex-col gap-3 pr-4">
+                          {mainCat.sub_categories?.map((sub) => (
+                            <Link
+                              key={sub.id}
+                              href={`/category/${mainCat.id}/${sub.id}`}
+                              className="text-gray-500 hover:text-black text-xs font-bold transition-colors flex items-center justify-between group/item"
+                            >
+                              {sub.name}{" "}
+                              <ChevronLeft
+                                size={12}
+                                className="opacity-0 group-hover/item:opacity-100 transition-all"
+                              />
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div
+                className="relative h-full py-2 group"
+                onMouseEnter={() => setIsBrandsMenuOpen(true)}
+                onMouseLeave={() => setIsBrandsMenuOpen(false)}
+              >
+                <Link
+                  href="/all-brands"
+                  className="flex items-center gap-1 hover:text-black"
+                >
+                  الماركات{" "}
+                  <ChevronDown
+                    size={14}
+                    className={isBrandsMenuOpen ? "rotate-180" : ""}
+                  />
+                </Link>
+                <div
+                  className={`absolute top-full right-0 mt-0 w-[600px] bg-white shadow-2xl rounded-3xl border border-gray-50 p-6 transition-all duration-300 origin-top-right ${
+                    isBrandsMenuOpen
+                      ? "opacity-100 visible translate-y-0"
+                      : "opacity-0 invisible -translate-y-2"
+                  }`}
+                >
+                  <div className="grid grid-cols-3 gap-4">
+                    {brands.map((brand) => (
+                      <Link
+                        key={brand.id}
+                        href={`/brand/${brand.id}`}
+                        className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-2xl transition-all"
+                      >
+                        <img
+                          src={brand.image_url}
+                          alt=""
+                          className="w-8 h-8 rounded-full object-contain"
+                        />
+                        <span className="text-xs font-bold text-gray-600">
+                          {brand.name}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <Link
+                href="/offers"
+                className="hover:text-black text-red-600 bg-red-100 px-3 py-2 rounded-xl transition-colors"
+              >
+                العروض الحصرية
+              </Link>
             </div>
           </div>
 
-          {/* قائمة النتائج المنسدلة */}
-          {showDropdown && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden z-[60] animate-in fade-in slide-in-from-top-2 duration-200">
-              {results.length > 0 ? (
-                <>
-                  <div className="p-2">
-                    {results.map((product) => {
-                      const mainImage = product.product_images?.[0]?.image_url;
-                      return (
-                        <Link
-                          key={product.id}
-                          href={`/product/${product.id}`}
-                          className="flex items-center gap-4 p-3 hover:bg-blue-50 rounded-xl transition-all group"
-                          onClick={() => setShowDropdown(false)}
-                        >
-                          <div className="w-14 h-14 relative bg-gray-50 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0">
-                            <img
-                              src={
-                                mainImage ||
-                                "https://via.placeholder.com/150?text=No+Image"
-                              }
-                              alt={product.name}
-                              className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-300"
-                            />
-                          </div>
-                          <div className="flex-1 text-right">
-                            <h4 className="text-sm font-bold text-gray-900 line-clamp-1">
-                              {product.name}
-                            </h4>
-                            <p className="text-xs text-blue-600 font-black mt-1">
-                              {product.base_price} ج.م
-                            </p>
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                  {/* زر عرض جميع النتائج */}
-                  <div className="p-3 bg-gray-50 border-t border-gray-100 text-center">
-                    <button
-                      onClick={handleViewAll}
-                      className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors"
-                    >
-                      عرض جميع النتائج لـ "{searchQuery}"
-                    </button>
-                  </div>
-                </>
-              ) : (
-                !isSearching &&
-                searchQuery.length > 1 && (
-                  <div className="p-10 text-center text-gray-400 text-sm font-medium">
-                    لا توجد منتجات مطابقة لهذا البحث
-                  </div>
-                )
+          <div className="flex items-center gap-4">
+            <form
+              onSubmit={handleSearchSubmit}
+              className="hidden md:flex relative w-64"
+              ref={searchRef}
+            >
+              <div className="w-full flex items-center bg-gray-100 rounded-full px-4 py-2 focus-within:bg-white focus-within:ring-2 focus-within:ring-black/5 transition-all">
+                <input
+                  type="text"
+                  placeholder="ابحث هنا..."
+                  className="bg-transparent border-none w-full px-1 text-xs focus:outline-none font-bold"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className="text-gray-400 hover:text-black"
+                >
+                  <Search size={16} />
+                </button>
+              </div>
+              {showDropdown && (
+                <div className="absolute top-full mt-2 w-full bg-white shadow-2xl rounded-2xl border border-gray-50 overflow-hidden z-[60]">
+                  {isSearching ? (
+                    <div className="p-6 flex flex-col items-center justify-center gap-2">
+                      <Loader2 size={20} className="animate-spin text-black" />
+                    </div>
+                  ) : results.length > 0 ? (
+                    results.map((p) => (
+                      <Link
+                        key={p.id}
+                        href={`/product/${p.id}`}
+                        className="flex items-center gap-3 p-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 transition-colors"
+                      >
+                        <img
+                          src={p.product_images?.[0]?.image_url}
+                          className="w-8 h-8 rounded-md object-cover"
+                          alt=""
+                        />
+                        <span className="text-[10px] font-bold truncate">
+                          {p.name}
+                        </span>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-[10px] font-bold text-gray-400">
+                      لا توجد نتائج
+                    </div>
+                  )}
+                </div>
               )}
-            </div>
-          )}
-        </div>
+            </form>
 
-        {/* الأيقونات */}
-        <div className="flex items-center gap-3">
-          <button className="p-2.5 text-gray-500 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all relative">
-            <ShoppingCart size={22} />
-            <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full border-2 border-white font-bold">
-              0
-            </span>
-          </button>
-          <button className="hidden sm:flex items-center gap-2 p-2.5 px-6 bg-gray-900 text-white rounded-xl font-bold text-sm hover:bg-gray-800 transition-all">
-            <User size={18} />
-            دخول
-          </button>
+            <button className="p-2 text-gray-700 hover:bg-gray-50 rounded-full">
+              <User size={20} />
+            </button>
+
+            {/* زر السلة - تم تحديث المسمى والحماية هنا */}
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="p-2 text-gray-700 hover:bg-gray-50 rounded-full relative"
+            >
+              <ShoppingCart size={20} />
+              {cart?.length > 0 && (
+                <span className="absolute top-1 right-1 w-4 h-4 bg-black text-white text-[9px] flex items-center justify-center rounded-full font-bold animate-in zoom-in">
+                  {cart.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setIsOpen(true)}
+              className="lg:hidden p-2 text-gray-700 hover:bg-gray-50 rounded-full"
+            >
+              <Menu size={24} />
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+
+      {/* Mobile Menu */}
+      <div
+        className={`fixed inset-0 z-[100] ${isOpen ? "visible" : "invisible"}`}
+      >
+        <div
+          className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity ${
+            isOpen ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={() => setIsOpen(false)}
+        />
+        <div
+          className={`absolute top-0 right-0 h-full w-[85%] max-w-sm bg-white transition-transform duration-300 p-6 flex flex-col ${
+            isOpen ? "translate-x-0" : "translate-x-full"
+          }`}
+          dir="rtl"
+        >
+          <div className="flex items-center justify-between mb-8">
+            <Link
+              href="/"
+              className="text-2xl font-black tracking-tighter text-black"
+            >
+              <img
+                src="/logo.svg"
+                alt="Half Million"
+                className="w-full h-full object-contain p-2"
+              />
+            </Link>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="p-2 bg-gray-50 rounded-full"
+            >
+              <X size={20} />
+            </button>
+          </div>
+          <div className="space-y-3 overflow-y-auto flex-1 pb-20 custom-scrollbar">
+            <Link
+              href="/all-products"
+              className="flex items-center justify-between font-black text-gray-800 p-4 bg-gray-50 rounded-2xl"
+            >
+              المتجر <ArrowLeft size={18} />
+            </Link>
+            <Link
+              href="/offers"
+              className="flex items-center justify-between font-black text-red-600 p-4 bg-red-50 rounded-2xl"
+            >
+              العروض الحصرية <Tag size={18} />
+            </Link>
+            <div className="h-px bg-gray-100 my-4" />
+            <p className="text-[10px] font-black text-gray-400 uppercase px-4 mb-2">
+              الأقسام
+            </p>
+            {categories.map((cat) => (
+              <div
+                key={cat.id}
+                className="border-b border-gray-50 last:border-0"
+              >
+                <button
+                  onClick={() =>
+                    setOpenMobileCat(openMobileCat === cat.id ? null : cat.id)
+                  }
+                  className="w-full flex items-center justify-between p-4 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded-xl"
+                >
+                  {cat.name}{" "}
+                  <ChevronDown
+                    size={16}
+                    className={
+                      openMobileCat === cat.id
+                        ? "rotate-180 text-black"
+                        : "text-gray-300"
+                    }
+                  />
+                </button>
+                <div
+                  className={`overflow-hidden transition-all duration-300 ${
+                    openMobileCat === cat.id
+                      ? "max-h-96 opacity-100 py-2"
+                      : "max-h-0 opacity-0"
+                  }`}
+                >
+                  {cat.sub_categories?.map((sub) => (
+                    <Link
+                      key={sub.id}
+                      href={`/category/${cat.id}/${sub.id}`}
+                      className="text-xs font-bold text-gray-500 py-3 px-8 hover:text-black flex border-r-2 border-gray-100"
+                    >
+                      {sub.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </nav>
+    </>
   );
 }
