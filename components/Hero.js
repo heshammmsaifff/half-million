@@ -40,10 +40,7 @@ export default function HeroSection() {
   if (slides.length === 0) return null;
 
   return (
-    <section
-      className="relative w-full max-w-[1400px] mx-auto pt-0.5"
-      dir="rtl"
-    >
+    <section className="relative w-full mx-auto pt-0.5" dir="rtl">
       <Swiper
         spaceBetween={30}
         effect={"fade"}

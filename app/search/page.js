@@ -39,7 +39,7 @@ function SearchContent() {
   if (loading)
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
-        <Loader2 className="animate-spin text-blue-600" size={48} />
+        <Loader2 className="animate-spin text-gray-600" size={48} />
         <p className="font-black text-gray-400">جاري فحص الرفوف...</p>
       </div>
     );
@@ -49,13 +49,13 @@ function SearchContent() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-gray-100 pb-10">
         <div>
           <div className="flex items-center gap-3 mb-4">
-            <span className="bg-blue-600 text-white p-2 rounded-xl">
+            <span className="bg-gray-600 text-white p-2 rounded-xl">
               <Search size={24} />
             </span>
             <h1 className="text-4xl font-black text-gray-900">نتائج البحث</h1>
           </div>
           <p className="text-gray-500 font-bold">
-            عرض <span className="text-blue-600">{products.length}</span> منتج
+            عرض <span className="text-gray-600">{products.length}</span> منتج
             بحثاً عن
             <span className="text-black underline px-2">"{query}"</span>
             {catFilter !== "all" && (
@@ -101,10 +101,10 @@ function SearchContent() {
                   )}
                 </div>
                 <div className="p-6 text-center">
-                  <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2 block">
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">
                     {product.brands?.name}
                   </span>
-                  <h3 className="text-lg font-black text-gray-800 mb-4 group-hover:text-blue-600 transition-colors line-clamp-1">
+                  <h3 className="text-lg font-black text-gray-800 mb-4 group-hover:text-gray-600 transition-colors line-clamp-1">
                     {product.name}
                   </h3>
                   <div className="flex flex-col items-center gap-1">

@@ -85,7 +85,7 @@ export default function LatestProducts() {
   return (
     <section className="py-16 px-4 md:px-12 max-w-[1600px] mx-auto" dir="rtl">
       <div className="text-center mb-12">
-        <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-2">
+        <h2 className="text-3xl md:text-4xl font-black text-black mb-2">
           أحدث المنتجات
         </h2>
         <div className="w-20 h-1.5 bg-black mx-auto rounded-full"></div>
