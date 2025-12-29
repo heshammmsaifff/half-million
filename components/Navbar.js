@@ -29,6 +29,9 @@ export default function Navbar() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
 
+  // الحالة الخاصة بالمستخدم
+  const [user, setUser] = useState(null);
+
   const [openMobileCat, setOpenMobileCat] = useState(null);
   const [isMobileBrandsOpen, setIsMobileBrandsOpen] = useState(false);
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
@@ -62,6 +65,26 @@ export default function Navbar() {
       setBrands(brandData || []);
     };
     fetchData();
+
+    // التحقق من حالة المستخدم الحالية
+    const checkUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    checkUser();
+
+    // الاستماع لتغييرات حالة تسجيل الدخول
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -220,7 +243,7 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Desktop Search Section - تم تعديل العرض هنا */}
+          {/* Desktop Search Section */}
           <div
             className="hidden md:flex flex-grow max-w-[600px] relative"
             ref={searchRef}
@@ -303,9 +326,17 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
-            <button className="p-2 text-gray-700 hover:bg-gray-50 rounded-full">
+            {/* زر الحساب الشخصي المعدل */}
+            <Link
+              href={user ? "/profile" : "/login"}
+              className="p-2 text-gray-700 hover:bg-gray-50 rounded-full relative transition-colors"
+            >
               <User size={20} />
-            </button>
+              {user && (
+                <span className="absolute top-2 right-2 w-2 h-2 bg-green-500 rounded-full border border-white"></span>
+              )}
+            </Link>
+
             <button
               onClick={() => setIsCartOpen(true)}
               className="p-2 text-gray-700 hover:bg-gray-50 rounded-full relative"
@@ -426,6 +457,16 @@ export default function Navbar() {
           </form>
 
           <div className="space-y-3 overflow-y-auto flex-1 pb-10 custom-scrollbar">
+            {/* إضافة زر الحساب في القائمة الجانبية للموبايل */}
+            <Link
+              href={user ? "/profile" : "/login"}
+              onClick={() => setIsOpen(false)}
+              className="flex items-center justify-between font-black text-gray-800 p-4 bg-gray-100 rounded-2xl"
+            >
+              {user ? "حسابي الشخصي" : "تسجيل الدخول / عضوية جديدة"}
+              <User size={18} className={user ? "text-green-600" : ""} />
+            </Link>
+
             <Link
               href="/all-products"
               className="flex items-center justify-between font-black text-gray-800 p-4 bg-gray-50 rounded-2xl"

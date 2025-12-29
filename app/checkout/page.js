@@ -5,6 +5,7 @@ import { useCart } from "@/context/CartContext";
 import { supabase } from "@/lib/supabaseClient";
 import { toast, Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 import {
   CheckCircle2,
   Loader2,
@@ -16,13 +17,13 @@ import {
 } from "lucide-react";
 
 export default function CheckoutPage() {
-  // سحب البيانات بالأسماء الموحدة من الـ Context
   const { cart, getCartTotal, clearCart } = useCart();
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
   const [orderCompleted, setOrderCompleted] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -33,18 +34,32 @@ export default function CheckoutPage() {
     address: "",
   });
 
-  // حماية لمنع خطأ الـ Hydration في Next.js
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    const checkUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        Swal.fire({
+          icon: "warning",
+          title: "تسجيل الدخول مطلوب",
+          text: "يرجى تسجيل الدخول أولاً لإتمام عملية الشراء وحفظ طلباتك",
+          confirmButtonText: "تسجيل الدخول",
+          confirmButtonColor: "#000",
+        }).then(() => {
+          router.push("/login");
+        });
+      } else {
+        setCurrentUser(user);
+        setIsClient(true);
+      }
+    };
+    checkUser();
+  }, [router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // تأكد من وجود سلة ومنتجات
-    if (!cart || cart.length === 0) {
-      return toast.error("سلتك فارغة!");
-    }
+    if (!cart || cart.length === 0) return toast.error("سلتك فارغة!");
 
     setLoading(true);
 
@@ -56,7 +71,8 @@ export default function CheckoutPage() {
       state: formData.state,
       address: formData.address,
       total_price: getCartTotal(),
-      items: cart, // سيتم تخزين المصفوفة كاملة في عمود JSONB
+      items: cart,
+      user_id: currentUser.id, // ربط الطلب بالمستخدم المسجل
     };
 
     try {
@@ -65,22 +81,19 @@ export default function CheckoutPage() {
 
       toast.success("تم استلام طلبك بنجاح!");
       setOrderCompleted(true);
-      clearCart(); // مسح السلة من الـ Context والـ LocalStorage
-      setTimeout(() => router.push("/"), 5000);
+      clearCart();
     } catch (error) {
-      toast.error("حدث خطأ أثناء إرسال الطلب، حاول مرة أخرى.");
-      console.error("Supabase error:", error);
+      toast.error("حدث خطأ أثناء إرسال الطلب");
+      console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
-  // شاشة تحميل بسيطة حتى يتم التعرف على الـ Client
-  if (!isClient) {
+  if (!isClient || !currentUser) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-        <Loader2 className="animate-spin text-black mb-4" size={40} />
-        <p className="font-bold text-gray-500">جاري تحميل بيانات السلة...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin" size={40} />
       </div>
     );
   }
@@ -88,24 +101,23 @@ export default function CheckoutPage() {
   if (orderCompleted) {
     return (
       <div
-        className="min-h-[80vh] flex flex-col items-center justify-center text-center p-6"
+        className="min-h-screen flex flex-col items-center justify-center text-center p-6"
         dir="rtl"
       >
         <div className="w-24 h-24 bg-green-50 text-green-600 rounded-full flex items-center justify-center mb-6 animate-bounce">
           <CheckCircle2 size={50} />
         </div>
-        <h1 className="text-4xl font-black mb-4 tracking-tighter text-black">
-          شكراً لثقتك بـ HALF MILLION
+        <h1 className="text-4xl font-black mb-4 tracking-tighter">
+          شكراً لثقتك بنا
         </h1>
-        <p className="text-gray-500 text-xl font-medium max-w-md">
-          تم استلام طلبك بنجاح. سيتواصل معك فريق الشحن خلال 24 ساعة لتأكيد
-          الطلب.
+        <p className="text-gray-500 text-xl max-w-md font-bold">
+          تم استلام طلبك بنجاح. يمكنك متابعة حالته من ملفك الشخصي.
         </p>
         <button
-          onClick={() => router.push("/")}
-          className="mt-10 text-black font-black border-b-2 border-black pb-1 hover:text-gray-500 transition-all"
+          onClick={() => router.push("/profile")}
+          className="mt-10 bg-black text-white px-8 py-4 rounded-2xl font-black hover:scale-105 transition-transform"
         >
-          العودة للرئيسية
+          عرض طلباتي
         </button>
       </div>
     );
@@ -115,45 +127,35 @@ export default function CheckoutPage() {
     <div className="max-w-7xl mx-auto px-6 py-16" dir="rtl">
       <Toaster position="top-center" />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
-        {/* قسم النموذج */}
         <div className="space-y-10">
-          <div>
-            <h1 className="text-4xl font-black mb-4 text-black italic underline decoration-gray-200 underline-offset-8">
-              إتمام الشراء
-            </h1>
-            <p className="text-gray-500 font-bold text-lg">
-              بيانات الشحن والتوصيل
-            </p>
-          </div>
-
+          <h1 className="text-4xl font-black italic underline decoration-gray-200 underline-offset-8">
+            إتمام الشراء
+          </h1>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-black flex items-center gap-2 text-black">
+              <label className="text-sm font-black flex items-center gap-2">
                 <User size={16} /> الاسم بالكامل
               </label>
               <input
                 required
                 type="text"
-                // placeholder="مثال: أحمد محمد"
-                className="w-full bg-gray-50 border border-gray-100 p-5 rounded-2xl focus:border-black transition-all font-bold text-black"
+                className="w-full bg-gray-50 border border-gray-100 p-5 rounded-2xl font-bold"
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
               />
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-sm font-black flex items-center gap-2 text-black">
-                  <Phone size={16} /> رقم الهاتف (أساسي)
+                <label className="text-sm font-black flex items-center gap-2">
+                  <Phone size={16} /> رقم الهاتف
                 </label>
                 <input
                   required
                   type="tel"
-                  placeholder="01xxxxxxxxx"
-                  className="w-full bg-gray-50 border border-gray-100 p-5 rounded-2xl text-left font-bold text-black"
                   dir="ltr"
+                  className="w-full bg-gray-50 border border-gray-100 p-5 rounded-2xl font-bold"
                   value={formData.phone}
                   onChange={(e) =>
                     setFormData({ ...formData, phone: e.target.value })
@@ -162,13 +164,12 @@ export default function CheckoutPage() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-black flex items-center gap-2 text-gray-400">
-                  <Plus size={16} /> رقم هاتف إضافي (اختياري)
+                  <Plus size={16} /> هاتف إضافي
                 </label>
                 <input
                   type="tel"
-                  placeholder="رقم بديل للوصول إليك"
-                  className="w-full bg-gray-50 border border-gray-100 p-5 rounded-2xl text-left font-bold text-black"
                   dir="ltr"
+                  className="w-full bg-gray-50 border border-gray-100 p-5 rounded-2xl font-bold"
                   value={formData.phone2}
                   onChange={(e) =>
                     setFormData({ ...formData, phone2: e.target.value })
@@ -176,17 +177,15 @@ export default function CheckoutPage() {
                 />
               </div>
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-sm font-black flex items-center gap-2 text-black">
+                <label className="text-sm font-black flex items-center gap-2">
                   <MapPin size={16} /> المحافظة
                 </label>
                 <input
                   required
                   type="text"
-                  // placeholder="مثال: القاهرة"
-                  className="w-full bg-gray-50 border border-gray-100 p-5 rounded-2xl font-bold text-black"
+                  className="w-full bg-gray-50 border border-gray-100 p-5 rounded-2xl font-bold"
                   value={formData.state}
                   onChange={(e) =>
                     setFormData({ ...formData, state: e.target.value })
@@ -194,14 +193,13 @@ export default function CheckoutPage() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-black flex items-center gap-2 text-black">
-                  <MapPin size={16} /> المدينة / المنطقة
+                <label className="text-sm font-black flex items-center gap-2">
+                  <MapPin size={16} /> المدينة
                 </label>
                 <input
                   required
                   type="text"
-                  // placeholder="مثال: المعادي"
-                  className="w-full bg-gray-50 border border-gray-100 p-5 rounded-2xl font-bold text-black"
+                  className="w-full bg-gray-50 border border-gray-100 p-5 rounded-2xl font-bold"
                   value={formData.city}
                   onChange={(e) =>
                     setFormData({ ...formData, city: e.target.value })
@@ -209,30 +207,23 @@ export default function CheckoutPage() {
                 />
               </div>
             </div>
-
             <div className="space-y-2">
-              <label className="text-sm font-black flex items-center gap-2 text-black">
+              <label className="text-sm font-black flex items-center gap-2">
                 <MapPin size={16} /> العنوان بالتفصيل
               </label>
               <textarea
                 required
                 rows="3"
-                placeholder="اسم الشارع، رقم العمارة، الطابق، علامة مميزة بجوارك..."
-                className="w-full bg-gray-50 border border-gray-100 p-5 rounded-2xl font-bold text-black focus:border-black outline-none transition-all"
+                className="w-full bg-gray-50 border border-gray-100 p-5 rounded-2xl font-bold"
                 value={formData.address}
                 onChange={(e) =>
                   setFormData({ ...formData, address: e.target.value })
                 }
               ></textarea>
             </div>
-
             <button
-              disabled={loading || cart.length === 0}
-              className={`w-full py-7 rounded-[2rem] font-black text-2xl shadow-2xl transition-all flex items-center justify-center gap-4 ${
-                loading
-                  ? "bg-gray-800 cursor-not-allowed"
-                  : "bg-black text-white hover:bg-gray-900 active:scale-95"
-              }`}
+              disabled={loading}
+              className="w-full py-7 rounded-[2rem] font-black text-2xl bg-black text-white hover:bg-gray-900 transition-all flex items-center justify-center gap-4"
             >
               {loading ? (
                 <Loader2 className="animate-spin" />
@@ -242,57 +233,35 @@ export default function CheckoutPage() {
             </button>
           </form>
         </div>
-
-        {/* قسم مراجعة الطلب */}
-        <div className="lg:block">
-          <div className="bg-[#0A0A0A] text-white p-8 md:p-12 rounded-[3rem] sticky top-10 border border-white/5 shadow-2xl">
-            <h3 className="text-2xl font-black mb-10 flex items-center gap-3 italic">
-              <ShoppingBag size={24} className="text-white" /> ملخص الطلب
-            </h3>
-
-            <div className="space-y-6 max-h-[350px] overflow-y-auto custom-scrollbar mb-10 pr-2">
-              {cart && cart.length > 0 ? (
-                cart.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-4 group bg-white/5 p-4 rounded-2xl"
-                  >
-                    <div className="w-14 h-14 bg-white rounded-xl overflow-hidden shrink-0">
-                      <img
-                        src={item.image}
-                        className="w-full h-full object-cover"
-                        alt={item.name}
-                      />
-                    </div>
-                    <div className="flex-1 text-right">
-                      <h4 className="font-bold text-sm text-white">
-                        {item.name}
-                      </h4>
-                      <p className="text-gray-400 text-xs mt-1 font-bold italic">
-                        {item.quantity} قطعة × {item.price} ج.م
-                      </p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-center text-gray-500 font-bold py-10">
-                  السلة فارغة حالياً
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-4 border-t border-white/10 pt-8">
-              <div className="flex justify-between font-bold text-gray-400">
-                <span>المجموع الفرعي</span>
-                <span>{getCartTotal()} ج.م</span>
+        <div className="bg-[#0A0A0A] text-white p-8 md:p-12 rounded-[3rem] sticky top-10 border border-white/5 shadow-2xl">
+          <h3 className="text-2xl font-black mb-10 flex items-center gap-3 italic">
+            <ShoppingBag size={24} /> ملخص الطلب
+          </h3>
+          <div className="space-y-6 max-h-[350px] overflow-y-auto mb-10 pr-2">
+            {cart.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl"
+              >
+                <img
+                  src={item.image}
+                  className="w-14 h-14 object-cover rounded-xl"
+                  alt={item.name}
+                />
+                <div className="flex-1 text-right">
+                  <h4 className="font-bold text-sm">{item.name}</h4>
+                  <p className="text-gray-400 text-xs font-bold italic">
+                    {item.quantity} قطعة × {item.price} ج.م
+                  </p>
+                </div>
               </div>
-              <div className="flex justify-between text-2xl font-black pt-4 border-t border-white/5 text-white">
-                <span>الإجمالي النهائي</span>
-                <span className="text-white underline decoration-white/20 underline-offset-4">
-                  {getCartTotal()} ج.م
-                </span>
-              </div>
-            </div>
+            ))}
+          </div>
+          <div className="flex justify-between text-2xl font-black pt-8 border-t border-white/10">
+            <span>الإجمالي النهائي</span>
+            <span className="underline underline-offset-4">
+              {getCartTotal()} ج.م
+            </span>
           </div>
         </div>
       </div>

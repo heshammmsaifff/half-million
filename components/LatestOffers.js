@@ -86,7 +86,7 @@ export default function LatestOffers() {
 
         <Link
           href="/offers"
-          className="group flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-black transition-colors"
+          className="group flex items-center gap-2 text-sm font-bold text-black hover:text-gray-600 transition-colors"
         >
           عرض كل العروض
           <ArrowLeft

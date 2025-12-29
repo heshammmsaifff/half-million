@@ -29,7 +29,7 @@ const BrandStory = () => {
   ];
 
   return (
-    <section className="py-24 bg-white overflow-hidden" dir="rtl">
+    <section className="py-24  overflow-hidden" dir="rtl">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* الجانب الأيمن: النص */}
@@ -122,7 +122,7 @@ const BrandStory = () => {
             </div>
 
             {/* خلفية جمالية ضبابية */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gray-100 rounded-full -z-0 opacity-50 blur-3xl" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%]  rounded-full -z-0 opacity-50 blur-3xl" />
           </div>
         </div>
       </div>
