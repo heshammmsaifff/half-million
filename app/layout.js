@@ -1,11 +1,11 @@
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { CartProvider } from "@/context/CartContext";
-import { Alexandria } from "next/font/google";
+import { Cairo } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import Footer from "@/components/Footer";
 
-const alexandria = Alexandria({
+const cairo = Cairo({
   subsets: ["arabic", "latin"],
   weight: ["200", "300", "400", "500", "600", "700", "800", "900"],
   display: "swap",
@@ -19,7 +19,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="ar" dir="rtl">
-      <body className={`${alexandria.className} bg-white antialiased`}>
+      <body className={`${cairo.className} bg-white antialiased`}>
         {/* التغليف بـ CartProvider يضمن وصول البيانات لكل الصفحات */}
         <CartProvider>
           <Toaster
