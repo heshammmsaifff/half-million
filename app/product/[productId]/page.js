@@ -8,14 +8,11 @@ import {
   FlaskConical,
   Info,
   ShoppingBag,
-  Youtube,
   XCircle,
   Loader2,
   ChevronRight,
   ShieldCheck,
   Truck,
-  RotateCcw,
-  Star,
   Tag,
   Award,
 } from "lucide-react";
@@ -26,37 +23,61 @@ import Link from "next/link";
 
 export default function ProductDetailsPage({ params: paramsPromise }) {
   const [product, setProduct] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const { addToCart } = useCart();
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchData = async () => {
       const { productId } = await paramsPromise;
       try {
-        const { data, error } = await supabase
+        // 1. جلب بيانات المنتج الأساسي مع ربط الجداول الصحيحة
+        const { data: productData, error: productError } = await supabase
           .from("products")
           .select(
             `
             *,
             brands!left (id, name), 
             product_images (id, image_url, is_main),
-            sub_categories!left (id, name, category_id),
-            comparison_product:comparison_product_id (id, name, base_price)
+            sub_categories:subcategory_id (id, name, category_id)
           `
           )
           .eq("id", Number(productId))
           .single();
 
-        if (error) throw error;
-        setProduct(data);
+        if (productError) throw productError;
+        setProduct(productData);
+
+        // 2. جلب منتجات متعلقة باستخدام المعرف الصحيح من الـ Schema (subcategory_id)
+        if (productData?.subcategory_id) {
+          const { data: relatedData, error: relatedError } = await supabase
+            .from("products")
+            .select(
+              `
+              *,
+              product_images (image_url, is_main)
+            `
+            )
+            .eq("subcategory_id", productData.subcategory_id)
+            .neq("id", productData.id) // استبعاد المنتج الحالي
+            .limit(10);
+
+          if (!relatedError && relatedData) {
+            // اختيار عشوائي لمنتجين فقط للعرض
+            const shuffled = [...relatedData]
+              .sort(() => 0.5 - Math.random())
+              .slice(0, 2);
+            setRelatedProducts(shuffled);
+          }
+        }
       } catch (err) {
-        console.error("Supabase Error:", err.message);
+        console.error("Error fetching data:", err.message);
       } finally {
         setLoading(false);
       }
     };
-    fetchProduct();
+    fetchData();
   }, [paramsPromise]);
 
   if (loading)
@@ -86,6 +107,7 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
       </div>
     );
 
+  // حسابات الأسعار
   const basePrice = Number(product.base_price);
   const discountValue = Number(product.discount_value || 0);
   const finalPrice =
@@ -149,22 +171,19 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 pt-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* العمود الأول: الصور */}
+          {/* المعرض */}
           <div className="lg:col-span-5 space-y-4">
             <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm sticky top-8">
               <ProductImageGallery images={images} productName={product.name} />
             </div>
           </div>
 
-          {/* العمود الثاني: معلومات المنتج */}
+          {/* المعلومات الأساسية */}
           <div className="lg:col-span-4 space-y-6">
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-md text-[10px] font-black">
-                  <span className="text-black">من منتجات</span>{" "}
-                  {product.brands?.name || "Half Million"}
-                </span>
-              </div>
+              <span className="bg-blue-50 text-gray-600 px-3 py-1 rounded-md text-[12px] font-black">
+                من منتجات {product.brands?.name || "Half Million"}
+              </span>
               <h1 className="text-3xl md:text-4xl font-black text-gray-900 leading-tight">
                 {product.name}
               </h1>
@@ -172,10 +191,8 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                 {product.description}
               </p>
             </div>
-
             <hr className="border-gray-100" />
 
-            {/* قسم التصنيف والعلامة التجارية */}
             <div className="space-y-4">
               <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-50">
                 <div className="flex items-center gap-2 text-sm font-bold text-gray-500">
@@ -189,7 +206,6 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                   {product.sub_categories?.name}
                 </Link>
               </div>
-
               <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-50">
                 <div className="flex items-center gap-2 text-sm font-bold text-gray-500">
                   <Award size={16} />
@@ -204,7 +220,6 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
               </div>
             </div>
 
-            {/* الوصف المفصل */}
             {product.detailed_description && (
               <div className="bg-white p-6 rounded-2xl border border-gray-100">
                 <h4 className="font-black text-sm mb-4 flex items-center gap-2">
@@ -215,20 +230,9 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                 </div>
               </div>
             )}
-
-            <div className="bg-white p-6 rounded-2xl border border-gray-100">
-              <h4 className="font-black text-sm mb-4 flex items-center gap-2">
-                <ShieldCheck size={18} className="text-green-600" /> ضمان
-                الجودة:
-              </h4>
-              <p className="text-gray-500 text-sm leading-relaxed">
-                هذا المنتج أصلي 100% وتم فحصه مخبرياً لضمان أعلى معايير السلامة
-                والجودة العالمية.
-              </p>
-            </div>
           </div>
 
-          {/* العمود الثالث: بوكس الشراء */}
+          {/* كارت السعر والشراء */}
           <div className="lg:col-span-3">
             <div className="bg-white p-6 rounded-3xl border-2 border-gray-50 shadow-xl shadow-black/5 sticky top-8 space-y-6">
               <div className="space-y-1">
@@ -249,32 +253,14 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                   </p>
                 )}
               </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm font-bold">
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      product.is_available ? "bg-green-500" : "bg-red-500"
-                    }`}
-                  ></div>
-                  {product.is_available ? "متوفر - اطلب الآن" : "غير متوفر"}
-                </div>
-                <div className="text-xs text-gray-500 flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <Truck size={14} /> توصيل سريع خلال 2-4 أيام
-                  </div>
-                </div>
-              </div>
-
               <button
                 onClick={handleAddToCart}
                 disabled={!product.is_available || adding}
-                className={`w-full py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 transition-all
-                  ${
-                    product.is_available
-                      ? "bg-black text-white hover:bg-gray-600 shadow-lg"
-                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  }`}
+                className={`w-full py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 transition-all ${
+                  product.is_available
+                    ? "bg-black text-white hover:bg-gray-600 shadow-lg"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                }`}
               >
                 {adding ? (
                   <Loader2 className="animate-spin" size={20} />
@@ -291,95 +277,106 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
           </div>
         </div>
 
-        {/* أقسام المعلومات التفصيلية */}
+        {/* المكونات والفوائد */}
         <div className="mt-20 space-y-12">
-          {/* فوائد ومكونات بتصميم Card */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm">
-              <h3 className="text-2xl font-black mb-8 flex items-center gap-3">
-                <FlaskConical size={28} className="text-blue-600" /> تركيبة
-                المنتج
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                {product.ingredients?.map((ing, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-3 p-4 bg-blue-50/50 rounded-xl border border-blue-100/50"
-                  >
-                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                    <span className="text-sm font-bold text-blue-900">
-                      {ing}
-                    </span>
+          {(product.ingredients?.length > 0 ||
+            product.benefits?.length > 0) && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {product.ingredients?.length > 0 && (
+                <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                  <h3 className="text-2xl font-black mb-8 flex items-center gap-3">
+                    <FlaskConical size={28} className="text-blue-600" /> تركيبة
+                    المنتج
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {product.ingredients.map((ing, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center gap-3 p-4 bg-blue-50/50 rounded-xl border border-blue-100/50"
+                      >
+                        <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                        <span className="text-sm font-bold text-blue-900">
+                          {ing}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm">
-              <h3 className="text-2xl font-black mb-8 flex items-center gap-3">
-                <CheckCircle2 size={28} className="text-green-600" /> النتائج
-                المتوقعة
-              </h3>
-              <div className="space-y-4">
-                {product.benefits?.map((benefit, i) => (
-                  <div
-                    key={i}
-                    className="flex gap-4 items-start p-4 bg-green-50/50 rounded-2xl"
-                  >
-                    <div className="bg-green-100 p-1 rounded-full mt-1">
-                      <CheckCircle2 size={14} className="text-green-600" />
-                    </div>
-                    <p className="font-bold text-green-900 text-sm leading-relaxed">
-                      {benefit}
-                    </p>
+                </div>
+              )}
+              {product.benefits?.length > 0 && (
+                <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                  <h3 className="text-2xl font-black mb-8 flex items-center gap-3">
+                    <CheckCircle2 size={28} className="text-green-600" />{" "}
+                    النتائج المتوقعة
+                  </h3>
+                  <div className="space-y-4">
+                    {product.benefits.map((benefit, i) => (
+                      <div
+                        key={i}
+                        className="flex gap-4 items-start p-4 bg-green-50/50 rounded-2xl"
+                      >
+                        <div className="bg-green-100 p-1 rounded-full mt-1">
+                          <CheckCircle2 size={14} className="text-green-600" />
+                        </div>
+                        <p className="font-bold text-green-900 text-sm leading-relaxed">
+                          {benefit}
+                        </p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
-          {/* طريقة الاستخدام والتحذيرات */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-8 bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm">
-              <h3 className="text-2xl font-black mb-8">
-                خطوات الاستخدام المثالية
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {product.usage_instructions?.map((step, i) => (
-                  <div
-                    key={i}
-                    className="relative p-6 bg-gray-50 rounded-2xl border-r-4 border-black"
-                  >
-                    <span className="absolute left-6 top-6 text-4xl font-black text-gray-200/50 italic">
-                      0{i + 1}
-                    </span>
-                    <p className="text-gray-700 font-bold relative z-10 leading-relaxed">
-                      {step}
-                    </p>
+          {/* الاستخدام والتحذيرات */}
+          {(product.usage_instructions?.length > 0 ||
+            product.warnings?.length > 0) && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {product.usage_instructions?.length > 0 && (
+                <div className="lg:col-span-8 bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                  <h3 className="text-2xl font-black mb-8">
+                    خطوات الاستخدام المثالية
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {product.usage_instructions.map((step, i) => (
+                      <div
+                        key={i}
+                        className="relative p-6 bg-gray-50 rounded-2xl border-r-4 border-black"
+                      >
+                        <span className="absolute left-6 top-6 text-4xl font-black text-gray-200/50 italic">
+                          0{i + 1}
+                        </span>
+                        <p className="text-gray-700 font-bold relative z-10 leading-relaxed">
+                          {step}
+                        </p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
+              {product.warnings?.length > 0 && (
+                <div className="lg:col-span-4 bg-red-50 p-10 rounded-[2.5rem] border border-red-100">
+                  <h3 className="text-xl font-black text-red-900 mb-6 flex items-center gap-2">
+                    <AlertTriangle size={24} /> تنبيهات هامة
+                  </h3>
+                  <ul className="space-y-4">
+                    {product.warnings.map((warn, i) => (
+                      <li
+                        key={i}
+                        className="text-red-800 text-sm font-bold flex gap-3 leading-relaxed"
+                      >
+                        <div className="w-1.5 h-1.5 bg-red-400 rounded-full mt-2 shrink-0"></div>
+                        {warn}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
+          )}
 
-            <div className="lg:col-span-4 bg-red-50 p-10 rounded-[2.5rem] border border-red-100">
-              <h3 className="text-xl font-black text-red-900 mb-6 flex items-center gap-2">
-                <AlertTriangle size={24} /> تنبيهات هامة
-              </h3>
-              <ul className="space-y-4">
-                {product.warnings?.map((warn, i) => (
-                  <li
-                    key={i}
-                    className="text-red-800 text-sm font-bold flex gap-3 leading-relaxed"
-                  >
-                    <div className="w-1.5 h-1.5 bg-red-400 rounded-full mt-2 shrink-0"></div>
-                    {warn}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* فيديو اليوتيوب */}
+          {/* قسم الفيديو */}
           {videoId && (
             <div className="pt-20 border-t border-gray-100">
               <div className="max-w-4xl mx-auto space-y-10">
@@ -387,9 +384,6 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                   <h3 className="text-3xl font-black mb-2 text-gray-900">
                     شاهد المنتج في العمل
                   </h3>
-                  <p className="text-gray-500 font-medium">
-                    مراجعة تفصيلية تشرح مميزات المنتج وطريقة استخدامه الصحيحة
-                  </p>
                 </div>
                 <div className="aspect-video rounded-[3rem] overflow-hidden shadow-2xl bg-black ring-[15px] ring-white">
                   <iframe
@@ -400,6 +394,56 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                     allowFullScreen
                   ></iframe>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* قسم قد يعجبك أيضاً */}
+          {relatedProducts.length > 0 && (
+            <div className="pt-24 border-t border-gray-100">
+              <div className="mb-10">
+                <h3 className="text-3xl font-black text-gray-900">
+                  قد يعجبك أيضاً
+                </h3>
+                <p className="text-gray-500 font-bold mt-1">
+                  منتجات مختارة بعناية
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {relatedProducts.map((p) => {
+                  const pImg =
+                    p.product_images?.find((img) => img.is_main)?.image_url ||
+                    p.product_images?.[0]?.image_url;
+                  return (
+                    <Link
+                      key={p.id}
+                      href={`/product/${p.id}`}
+                      className="group bg-white p-6 rounded-[2.5rem] border border-gray-100 flex items-center gap-6 hover:shadow-xl hover:border-black transition-all"
+                    >
+                      <div className="w-32 h-32 bg-gray-50 rounded-[1.5rem] overflow-hidden flex-shrink-0 border border-gray-50">
+                        <img
+                          src={pImg}
+                          alt={p.name}
+                          className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
+                        />
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <h4 className="font-black text-xl text-gray-900 group-hover:text-black line-clamp-1">
+                          {p.name}
+                        </h4>
+                        <p className="text-gray-500 text-sm font-medium line-clamp-2">
+                          {p.description}
+                        </p>
+                        <div className="pt-2">
+                          <span className="text-2xl font-black text-black">
+                            {Number(p.base_price).toLocaleString()}{" "}
+                            <small className="text-xs">ج.م</small>
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           )}
