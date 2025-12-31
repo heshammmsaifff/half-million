@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   Tag,
   Loader2,
+  Contact,
 } from "lucide-react";
 
 import { supabase } from "@/lib/supabaseClient";
@@ -239,6 +240,12 @@ export default function Navbar() {
                 className="hover:text-black text-gray-600  px-3 py-2 rounded-xl transition-colors whitespace-nowrap"
               >
                 سلة التسوق
+              </Link>
+              <Link
+                href="/contact"
+                className="hover:text-black text-gray-600  px-3 py-2 rounded-xl transition-colors whitespace-nowrap"
+              >
+                تواصل معنا
               </Link>
             </div>
           </div>
@@ -484,6 +491,12 @@ export default function Navbar() {
               className="flex items-center justify-between font-black text-gray-800 p-4 bg-gray-50 rounded-2xl"
             >
               سلة التسوق <ShoppingCart size={18} />
+            </Link>
+            <Link
+              href="/contact"
+              className="flex items-center justify-between font-black text-gray-800 p-4 bg-gray-50 rounded-2xl"
+            >
+              تواصل معنا <Contact size={18} />
             </Link>
 
             <div className="h-px bg-gray-100 my-4" />
