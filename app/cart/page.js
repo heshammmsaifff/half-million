@@ -94,7 +94,7 @@ export default function CartPage() {
               {/* حذف المنتج */}
               <button
                 onClick={() => removeFromCart(item.id)}
-                className="p-4 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all"
+                className="p-4 text-red-600 hover:bg-red-50 rounded-2xl transition-all"
               >
                 <Trash2 size={20} />
               </button>
