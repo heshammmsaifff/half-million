@@ -5,12 +5,14 @@ import BrandsSlider from "@/components/BrandsSlider";
 import LatestProducts from "@/components/LatestProducts";
 import LatestOffers from "@/components/LatestOffers";
 import BrandStory from "@/components/BrandStory";
+import BrandShowcase from "@/components/BrandShowcase";
 
 export default function Page() {
   return (
     <div className="relative">
       <HeroSection />
       <BrandsSlider />
+      <BrandShowcase />
       <LatestProducts />
       <LatestOffers />
       <BrandStory />

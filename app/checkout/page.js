@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { toast, Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
-import imageCompression from "browser-image-compression"; // استيراد مكتبة الضغط
+import imageCompression from "browser-image-compression";
 import {
   CheckCircle2,
   Loader2,
@@ -19,6 +19,8 @@ import {
   Truck,
   UploadCloud,
   FileCheck,
+  Copy,
+  Check,
 } from "lucide-react";
 
 export default function CheckoutPage() {
@@ -26,14 +28,19 @@ export default function CheckoutPage() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
-  const [compressing, setCompressing] = useState(false); // حالة خاصة لعملية الضغط
+  const [compressing, setCompressing] = useState(false);
   const [orderCompleted, setOrderCompleted] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [receiptFile, setReceiptFile] = useState(null);
+  const [copiedText, setCopiedText] = useState(""); // لحالة زر النسخ
 
   const totalAmount = getCartTotal();
   const isMandatoryOnline = totalAmount >= 2000;
+
+  // أرقام الحسابات
+  const WALLET_NUMBER = "01092141964";
+  const INSTAPAY_ID = "username@instapay";
 
   const [formData, setFormData] = useState({
     name: "",
@@ -72,29 +79,32 @@ export default function CheckoutPage() {
     }
   }, [isMandatoryOnline]);
 
-  // دالة التعامل مع اختيار الصورة وضغطها فوراً
+  // دالة النسخ
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(text);
+    toast.success("تم نسخ الرقم بنجاح");
+    setTimeout(() => setCopiedText(""), 2000);
+  };
+
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     setCompressing(true);
-
-    // إعدادات الضغط العالي (Target: ~50-70KB)
     const options = {
-      maxSizeMB: 0.07, // أقصى حجم 70 كيلوبايت تقريباً
-      maxWidthOrHeight: 1024, // تقليل الأبعاد للحفاظ على الوضوح مع صغر الحجم
+      maxSizeMB: 0.07,
+      maxWidthOrHeight: 1024,
       useWebWorker: true,
-      initialQuality: 0.6, // جودة 60% (توازن ممتاز للوصلات الورقية)
+      initialQuality: 0.6,
     };
 
     try {
       const compressedBlob = await imageCompression(file, options);
-      // تحويل Blob إلى File مرة أخرى لرفعه لـ Supabase
       const compressedFile = new File([compressedBlob], file.name, {
         type: file.type,
         lastModified: Date.now(),
       });
-
       setReceiptFile(compressedFile);
       toast.success(
         `تم ارفاق الصورة بنجاح (${(compressedFile.size / 1024).toFixed(1)} KB)`
@@ -113,7 +123,6 @@ export default function CheckoutPage() {
     const { data, error } = await supabase.storage
       .from("receipts")
       .upload(fileName, file);
-
     if (error) throw error;
     const {
       data: { publicUrl },
@@ -129,12 +138,9 @@ export default function CheckoutPage() {
     }
 
     setLoading(true);
-
     try {
       let receiptUrl = null;
-      if (receiptFile) {
-        receiptUrl = await uploadReceipt(receiptFile);
-      }
+      if (receiptFile) receiptUrl = await uploadReceipt(receiptFile);
 
       const orderData = {
         customer_name: formData.name,
@@ -216,6 +222,7 @@ export default function CheckoutPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* الحقول الأساسية */}
             <div className="space-y-2">
               <label className="text-sm font-black flex items-center gap-2">
                 <User size={16} /> الاسم بالكامل
@@ -353,7 +360,7 @@ export default function CheckoutPage() {
                   }`}
                 >
                   <Wallet size={24} />
-                  <div className="text-right">
+                  <div className="text-right flex-1">
                     <p className="font-black text-sm">انستا باي / محفظة</p>
                     <p
                       className={`text-[10px] ${
@@ -362,49 +369,91 @@ export default function CheckoutPage() {
                           : "text-gray-500"
                       }`}
                     >
-                      0123456789 (فودافون كاش)
+                      تحويل إلكتروني مباشر
                     </p>
                   </div>
                 </button>
               </div>
 
               {formData.paymentMethod === "transfer" && (
-                <div
-                  className={`mt-6 p-8 border-2 border-dashed rounded-[2.5rem] space-y-4 transition-all ${
-                    receiptFile
-                      ? "border-green-200 bg-green-50/30"
-                      : "border-blue-100 bg-blue-50/30"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="text-right">
-                      <p className="font-black text-sm">إرفاق إيصال التحويل</p>
-                      {/* <p className="text-xs text-gray-500">
-                        سيتم ضغط الصورة تلقائياً لتوفير المساحة
-                      </p> */}
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="flex items-center justify-between p-4 bg-gray-100 rounded-2xl border border-gray-200">
+                      <div className="text-right">
+                        <p className="text-[10px] font-black text-gray-400">
+                          رقم المحفظة (فودافون كاش)
+                        </p>
+                        <p className="font-black text-sm">{WALLET_NUMBER}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(WALLET_NUMBER)}
+                        className="p-3 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors"
+                      >
+                        {copiedText === WALLET_NUMBER ? (
+                          <Check size={18} className="text-green-600" />
+                        ) : (
+                          <Copy size={18} />
+                        )}
+                      </button>
                     </div>
-                    {compressing ? (
-                      <Loader2 className="animate-spin text-blue-500" />
-                    ) : receiptFile ? (
-                      <FileCheck className="text-green-500" />
-                    ) : (
-                      <UploadCloud className="text-blue-400" />
-                    )}
+
+                    <div className="flex items-center justify-between p-4 bg-gray-100 rounded-2xl border border-gray-200">
+                      <div className="text-right">
+                        <p className="text-[10px] font-black text-gray-400">
+                          عنوان انستا باي (InstaPay)
+                        </p>
+                        <p className="font-black text-sm">{INSTAPAY_ID}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(INSTAPAY_ID)}
+                        className="p-3 bg-white rounded-xl shadow-sm hover:bg-gray-50 transition-colors"
+                      >
+                        {copiedText === INSTAPAY_ID ? (
+                          <Check size={18} className="text-green-600" />
+                        ) : (
+                          <Copy size={18} />
+                        )}
+                      </button>
+                    </div>
                   </div>
 
-                  <input
-                    required
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-6 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-black file:text-white hover:file:bg-gray-800 cursor-pointer"
-                  />
-
-                  {receiptFile && (
-                    <p className="text-[10px] font-bold text-green-600">
-                      تم التجهيز: {(receiptFile.size / 1024).toFixed(1)} KB
-                    </p>
-                  )}
+                  {/* رفع الإيصال */}
+                  <div
+                    className={`p-8 border-2 border-dashed rounded-[2.5rem] space-y-4 transition-all ${
+                      receiptFile
+                        ? "border-green-200 bg-green-50/30"
+                        : "border-blue-100 bg-blue-50/30"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="text-right">
+                        <p className="font-black text-sm">
+                          إرفاق إيصال التحويل
+                        </p>
+                      </div>
+                      {compressing ? (
+                        <Loader2 className="animate-spin text-blue-500" />
+                      ) : receiptFile ? (
+                        <FileCheck className="text-green-500" />
+                      ) : (
+                        <UploadCloud className="text-blue-400" />
+                      )}
+                    </div>
+                    <input
+                      required
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-6 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-black file:text-white hover:file:bg-gray-800 cursor-pointer"
+                    />
+                    {receiptFile && (
+                      <p className="text-[10px] font-bold text-green-600">
+                        تم التجهيز: {(receiptFile.size / 1024).toFixed(1)} KB
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -422,6 +471,7 @@ export default function CheckoutPage() {
           </form>
         </div>
 
+        {/* ملخص الطلب */}
         <div className="bg-[#0A0A0A] text-white p-8 md:p-12 rounded-[3.5rem] sticky top-10 border border-white/5 shadow-2xl h-fit">
           <h3 className="text-2xl font-black mb-10 flex items-center gap-3 italic">
             <ShoppingBag size={24} /> ملخص الطلب
