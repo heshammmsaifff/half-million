@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Phone,
   Mail,
@@ -11,10 +11,23 @@ import {
   MapPin,
   Clock,
   ArrowLeft,
+  Send,
 } from "lucide-react";
 import Link from "next/link";
 
 export default function ContactUs() {
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    // هنا يمكنك ربط النموذج بجدول 'messages' في Supabase
+    setTimeout(() => {
+      alert("تم إرسال رسالتك بنجاح!");
+      setLoading(false);
+    }, 1500);
+  };
+
   const contactInfo = [
     {
       icon: <Phone className="w-6 h-6" />,
@@ -35,148 +48,117 @@ export default function ContactUs() {
     {
       icon: <Mail className="w-6 h-6" />,
       title: "البريد الإلكتروني",
-      detail: "support@brandname.com",
+      detail: "support@halfmillion.com",
       subDetail: "للاستفسارات الرسمية",
-      link: "mailto:support@brandname.com",
+      link: "mailto:support@halfmillion.com",
       color: "bg-purple-50 text-purple-600",
-    },
-  ];
-
-  const socialLinks = [
-    {
-      name: "انستجرام",
-      icon: <Instagram />,
-      link: "#",
-      color: "hover:text-pink-600",
-    },
-    {
-      name: "فيسبوك",
-      icon: <Facebook />,
-      link: "#",
-      color: "hover:text-blue-700",
-    },
-    {
-      name: "تويتر",
-      icon: <Twitter />,
-      link: "#",
-      color: "hover:text-sky-500",
     },
   ];
 
   return (
     <div className="min-h-screen bg-white" dir="rtl">
       {/* Header Section */}
-      <div className="relative h-[40vh] bg-black flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 opacity-40 bg-[url('https://images.unsplash.com/photo-1534536281715-e28d76689b4d?q=80&w=2070')] bg-cover bg-center" />
+      <div className="relative h-[45vh] bg-black flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 opacity-50 bg-[url('https://images.unsplash.com/photo-1534536281715-e28d76689b4d?q=80&w=2070')] bg-cover bg-center scale-110" />
         <div className="relative z-10 text-center space-y-4 px-6">
-          <h1 className="text-5xl md:text-7xl font-black text-white italic tracking-tighter">
+          <span className="text-white/70 uppercase tracking-[0.3em] text-sm font-bold">
+            نحن هنا لمساعدتك
+          </span>
+          <h1 className="text-5xl md:text-8xl font-black text-white italic tracking-tighter">
             تواصل معنا
           </h1>
-          <p className="text-gray-300 text-lg md:text-xl font-medium max-w-2xl mx-auto">
-            نحن هنا للإجابة على استفساراتك ومساعدتك في الحصول على أفضل تجربة
-            تسوق
-          </p>
         </div>
       </div>
 
-      {/* Contact Cards Grid */}
-      <div className="max-w-7xl mx-auto px-6 -mt-10 relative z-20 pb-20">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 -mt-16 relative z-20 pb-20">
+        {/* Contact Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {contactInfo.map((item, index) => (
             <a
               href={item.link}
               key={index}
-              className="bg-white p-10 rounded-[3rem] shadow-xl shadow-black/5 border border-gray-50 hover:scale-105 transition-all duration-300 group"
+              className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-black/5 border border-gray-100 hover:-translate-y-2 transition-all duration-500 group"
             >
               <div
-                className={`w-16 h-16 ${item.color} rounded-2xl flex items-center justify-center mb-8 group-hover:rotate-12 transition-transform`}
+                className={`w-14 h-14 ${item.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}
               >
                 {item.icon}
               </div>
-              <h3 className="text-xl font-black mb-2">{item.title}</h3>
-              <p className="text-2xl font-black mb-1 dir-ltr inline-block">
+              <h3 className="text-lg font-black mb-1">{item.title}</h3>
+              <p
+                className="text-xl font-black text-gray-900 mb-1"
+                style={{ direction: "ltr" }}
+              >
                 {item.detail}
               </p>
-              <p className="text-gray-400 text-sm font-bold">
+              <p className="text-gray-400 text-xs font-bold">
                 {item.subDetail}
               </p>
             </a>
           ))}
         </div>
 
-        {/* Social Media & Extra Info */}
-        <div className="mt-20 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div className="space-y-8 text-right">
-            <div>
-              <h2 className="text-4xl font-black mb-6 italic underline underline-offset-8 decoration-gray-200">
-                تابعنا على منصاتنا
+        <div className="mt-24 grid grid-cols-1 lg:grid-cols-2 gap-20">
+          {/* Social & Info Section */}
+          <div className="flex flex-col justify-center space-y-12">
+            <div className="space-y-6">
+              <h2 className="text-4xl md:text-5xl font-black leading-tight">
+                ابقَ على اتصال <br />
+                <span className="text-[#5F6F52]">دائماً</span>
               </h2>
-              <p className="text-gray-500 font-bold text-lg leading-relaxed">
-                كن أول من يعرف بأحدث العروض والمنتجات الحصرية من خلال متابعتنا
-                على مواقع التواصل الاجتماعي.
+              <p className="text-gray-500 font-bold text-lg max-w-md">
+                فريق خدمة العملاء متواجد لمساعدتك في اختيار المنتجات المناسبة لك
+                ومتابعة طلباتك.
               </p>
             </div>
 
-            <div className="flex gap-6">
-              {socialLinks.map((soc, i) => (
-                <Link
-                  href={soc.link}
-                  key={i}
-                  className={`w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 ${soc.color} transition-all border border-gray-100 shadow-sm`}
-                >
-                  {soc.icon}
-                </Link>
-              ))}
-            </div>
-
-            <div className="pt-10 space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-gray-100 rounded-xl">
-                  <MapPin className="w-5 h-5" />
+            <div className="space-y-6">
+              <div className="flex items-center gap-5">
+                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
+                  <MapPin size={20} />
                 </div>
                 <div>
-                  <h4 className="font-black text-sm uppercase text-gray-400">
-                    مقرنا الرئيسي
-                  </h4>
-                  <p className="font-bold text-lg">
-                    القاهرة، مصر - التجمع الخامس
+                  <p className="text-xs text-gray-400 font-black uppercase">
+                    العنوان
+                  </p>
+                  <p className="font-bold">
+                    القاهرة، التجمع الخامس، شارع التسعين
                   </p>
                 </div>
               </div>
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-gray-100 rounded-xl">
-                  <Clock className="w-5 h-5" />
+              <div className="flex items-center gap-5">
+                <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
+                  <Clock size={20} />
                 </div>
                 <div>
-                  <h4 className="font-black text-sm uppercase text-gray-400">
+                  <p className="text-xs text-gray-400 font-black uppercase">
                     ساعات العمل
-                  </h4>
-                  <p className="font-bold text-lg">الأحد - الخميس (10ص - 6م)</p>
+                  </p>
+                  <p className="font-bold">يومياً من 10 صباحاً حتى 10 مساءً</p>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Abstract Visual Box */}
-          <div className="relative group">
-            <div className="absolute -inset-4 bg-gray-100 rounded-[4rem] rotate-2 group-hover:rotate-0 transition-transform duration-500" />
-            <div className="relative bg-black h-[400px] rounded-[3.5rem] p-12 overflow-hidden flex flex-col justify-between">
-              <div className="space-y-4">
-                <h3 className="text-white text-3xl font-black italic">
-                  نحن دائماً بالقرب!
-                </h3>
-                <p className="text-gray-400 font-bold">
-                  لا تتردد في طرح أي سؤال، فريقنا جاهز لخدمتك في أي وقت.
-                </p>
-              </div>
+            <div className="flex gap-4">
               <Link
-                href="/"
-                className="bg-white text-black w-fit px-8 py-4 rounded-2xl font-black flex items-center gap-3 hover:gap-5 transition-all"
+                href="#"
+                className="w-12 h-12 rounded-xl bg-black text-white flex items-center justify-center hover:bg-pink-600 transition-colors"
               >
-                <ArrowLeft size={20} /> العودة للمتجر
+                <Instagram size={20} />
               </Link>
-              {/* Decorative Element */}
-              <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
+              <Link
+                href="#"
+                className="w-12 h-12 rounded-xl bg-black text-white flex items-center justify-center hover:bg-blue-600 transition-colors"
+              >
+                <Facebook size={20} />
+              </Link>
+              <Link
+                href="#"
+                className="w-12 h-12 rounded-xl bg-black text-white flex items-center justify-center hover:bg-sky-500 transition-colors"
+              >
+                <Twitter size={20} />
+              </Link>
             </div>
           </div>
         </div>
