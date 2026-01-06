@@ -315,12 +315,21 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                   </p>
                 )}
               </div>
+              <p
+                className={`font-bold text-xl ${
+                  product.is_available ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                {product.is_available
+                  ? "متاح للطلب، اطلب الان!"
+                  : "غير متاح، سيتوفّر قريباً"}
+              </p>
               <button
                 onClick={handleAddToCart}
                 disabled={!product.is_available || adding}
                 className={`w-full py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 transition-all ${
                   product.is_available
-                    ? "bg-black text-white hover:bg-gray-800 shadow-lg"
+                    ? "bg-black cursor-pointer text-white hover:bg-gray-800 shadow-lg"
                     : "bg-gray-200 text-gray-400 cursor-not-allowed"
                 }`}
               >
@@ -400,7 +409,7 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                         className="relative p-6 bg-gray-50 rounded-2xl border-r-4 border-black"
                       >
                         <span className="absolute left-6 top-6 text-4xl font-black text-gray-200/50 italic">
-                          0{i + 1}
+                          {i + 1}
                         </span>
                         <p className="text-gray-700 font-bold relative z-10 leading-relaxed">
                           {step}
