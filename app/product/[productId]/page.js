@@ -3,19 +3,20 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import {
+  ChevronRight,
+  ShoppingBag,
+  Loader2,
+  Tag,
+  Award,
+  Info,
+  FlaskConical,
   CheckCircle2,
   AlertTriangle,
-  FlaskConical,
-  Info,
-  ShoppingBag,
-  XCircle,
-  Loader2,
-  ChevronRight,
-  Tag,
-  X,
-  ExternalLink,
-  Award,
   ArrowLeftRight,
+  ExternalLink,
+  X,
+  Star,
+  ShieldCheck,
 } from "lucide-react";
 import ProductImageGallery from "@/components/ProductImageGallery";
 import { useCart } from "@/context/CartContext";
@@ -159,19 +160,19 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
   )?.[1];
 
   return (
-    <div className="bg-[#f8f9fa] min-h-screen pb-20" dir="rtl">
+    <div className="bg-[#F8F9F4] min-h-screen pb-20" dir="rtl">
       {isModalOpen && comparisonProduct && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all">
-          <div className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#2D3436]/80 backdrop-blur-md transition-all">
+          <div className="bg-white w-full max-w-lg rounded-[3rem] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300 border border-[#C3CBB9]/20">
             <div className="relative p-8 text-center space-y-6">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-6 left-6 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="absolute top-6 left-6 p-2 hover:bg-[#F8F9F4] rounded-full transition-colors text-[#2D3436]"
               >
                 <X size={24} />
               </button>
 
-              <div className="w-48 h-48 mx-auto bg-gray-50 rounded-3xl p-4 border border-gray-100">
+              <div className="w-48 h-48 mx-auto bg-[#F8F9F4] rounded-[2.5rem] p-6 border border-[#C3CBB9]/20 relative">
                 <img
                   src={
                     comparisonProduct.product_images?.find((img) => img.is_main)
@@ -184,13 +185,13 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
               </div>
 
               <div className="space-y-2">
-                <h3 className="text-2xl font-black">
+                <h3 className="text-2xl font-black text-[#2D3436]">
                   {comparisonProduct.name}
                 </h3>
-                <p className="text-gray-500 font-bold">
+                <p className="text-[#5F6F52] font-black text-xl">
                   {Number(comparisonProduct.base_price).toLocaleString()} ج.م
                 </p>
-                <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">
+                <p className="text-gray-500 text-sm leading-relaxed line-clamp-3 font-medium">
                   {comparisonProduct.description ||
                     "لا يوجد وصف مختصر متوفر حالياً لهذا المنتج."}
                 </p>
@@ -199,168 +200,200 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
               <div className="pt-4 flex flex-col gap-3">
                 <Link
                   href={`/product/${comparisonProduct.id}`}
-                  className="w-full py-4 bg-black text-white rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-gray-800 transition-all"
+                  className="w-full py-4 bg-[#2D3436] text-white rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-[#5F6F52] transition-all shadow-lg shadow-[#2D3436]/20"
                 >
                   عرض المنتج بالكامل <ExternalLink size={18} />
                 </Link>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="w-full py-4 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition-all"
+                  className="w-full py-4 bg-[#F8F9F4] text-[#2D3436] rounded-2xl font-bold hover:bg-[#E2E8D8] transition-all"
                 >
-                  إغلاق
+                  العودة للمنتج الحالي
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
-      {/* Breadcrumbs */}
-      <div className="bg-white border-b border-gray-100">
-        <nav className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center gap-2 text-xs font-bold text-gray-400">
-          <Link href="/" className="hover:text-black transition-colors">
+
+      {/* Breadcrumbs - مسار التصفح */}
+      <div className="bg-white/80 backdrop-blur-sm sticky top-0 z-40 border-b border-[#C3CBB9]/20">
+        <nav className="max-w-7xl mx-auto px-6 md:px-12 py-4 flex items-center gap-3 text-xs font-black text-[#C3CBB9]">
+          <Link href="/" className="hover:text-[#5F6F52] transition-colors">
             الرئيسية
           </Link>
-          <ChevronRight size={12} className="rotate-180" />
+          <ChevronRight size={14} className="rotate-180" />
           <Link
             href={`/category/1/${product.sub_categories?.id}`}
-            className="hover:text-black hover:underline transition-all cursor-pointer"
+            className="hover:text-[#5F6F52] transition-all"
           >
             {product.sub_categories?.name}
           </Link>
-          <ChevronRight size={12} className="rotate-180" />
-          <span className="text-black truncate">{product.name}</span>
+          <ChevronRight size={14} className="rotate-180" />
+          <span className="text-[#2D3436] truncate max-w-[150px]">
+            {product.name}
+          </span>
         </nav>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 pt-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* المعرض */}
+      <div className="max-w-7xl mx-auto px-6 md:px-12 pt-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+          {/* العمود الأول: معرض الصور */}
           <div className="lg:col-span-5">
-            <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm sticky top-8">
-              <ProductImageGallery images={images} productName={product.name} />
-            </div>
+            <ProductImageGallery images={images} productName={product.name} />
           </div>
 
-          {/* المعلومات الأساسية */}
-          <div className="lg:col-span-4 space-y-6">
+          {/* العمود الثاني: معلومات المنتج */}
+          <div className="lg:col-span-4 space-y-8">
             <div className="space-y-4">
-              <span className="bg-grey-50 text-gray-600 px-3 py-1 rounded-md text-[12px] font-black">
-                من منتجات {product.brands?.name || "Half Million"}
-              </span>
-              <h1 className="text-3xl md:text-4xl font-black text-gray-900 leading-tight">
+              <div className="flex items-center gap-2">
+                <span className="bg-[#5F6F52]/10 text-[#5F6F52] px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-[#5F6F52]/20">
+                  {product.brands?.name || "Premium Collection"}
+                </span>
+                {product.is_available && (
+                  <span className="flex items-center gap-1 text-[#5F6F52] text-[10px] font-bold">
+                    <ShieldCheck size={14} /> أصلي 100%
+                  </span>
+                )}
+              </div>
+
+              <h1 className="text-3xl md:text-5xl font-black text-[#2D3436] leading-tight tracking-tight">
                 {product.name}
               </h1>
-              <p className="text-gray-600 text-lg font-medium leading-relaxed">
+
+              <p className="text-gray-600 text-lg font-medium leading-relaxed italic">
                 {product.description}
               </p>
             </div>
 
-            <hr className="border-gray-100" />
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-50 text-sm font-bold">
-                <span className="text-gray-500 flex items-center gap-2">
-                  <Tag size={16} /> التصنيف
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1 bg-white p-4 rounded-2xl border border-[#C3CBB9]/20">
+                <span className="text-gray-400 text-[10px] font-black flex items-center gap-1 uppercase">
+                  <Tag size={12} /> القسم
                 </span>
-                <Link
-                  href={`/category/1/${product.sub_categories?.id}`}
-                  className="hover:text-black hover:underline transition-all cursor-pointer"
-                >
+                <span className="text-[#2D3436] font-bold text-sm">
                   {product.sub_categories?.name}
-                </Link>
-              </div>
-              <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-50 text-sm font-bold">
-                <span className="text-gray-500 flex items-center gap-2">
-                  <Award size={16} /> الماركة
                 </span>
-                <Link
-                  href={`/brand/${product.brands?.id}`}
-                  className="bg-blue-50 text-gray-600 px-3 py-1 rounded-md text-[12px] font-black hover:bg-blue-100 hover:text-blue-700 transition-all cursor-pointer"
-                >
+              </div>
+              <div className="flex flex-col gap-1 bg-white p-4 rounded-2xl border border-[#C3CBB9]/20">
+                <span className="text-gray-400 text-[10px] font-black flex items-center gap-1 uppercase">
+                  <Award size={12} /> البراند
+                </span>
+                <span className="text-[#2D3436] font-bold text-sm">
                   {product.brands?.name || "Half Million"}
-                </Link>{" "}
+                </span>
               </div>
             </div>
 
             {product.detailed_description && (
-              <div className="bg-white p-6 rounded-2xl border border-gray-100">
-                <h4 className="font-black text-sm mb-4 flex items-center gap-2">
-                  <Info size={18} className="text-grey-600" /> عن المنتج:
+              <div className="bg-white p-8 rounded-[2rem] border border-[#C3CBB9]/20 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-1 h-full bg-[#5F6F52]" />
+                <h4 className="font-black text-[#2D3436] mb-4 flex items-center gap-2">
+                  <Info size={20} className="text-[#5F6F52]" /> التفاصيل الكاملة
                 </h4>
-                <div className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">
+                <div className="text-gray-500 text-sm leading-relaxed whitespace-pre-line font-medium">
                   {product.detailed_description}
                 </div>
               </div>
             )}
           </div>
 
-          {/* كارت السعر */}
+          {/* العمود الثالث: كارت الشراء (Price Card) */}
           <div className="lg:col-span-3">
-            <div className="bg-white p-6 rounded-3xl border-2 border-gray-50 shadow-xl shadow-black/5 sticky top-8 space-y-6">
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-4xl font-black text-black">
-                    {finalPrice.toLocaleString()}{" "}
-                    <small className="text-sm">ج.م</small>
+            <div className="bg-[#2D3436] p-8 rounded-[3rem] shadow-2xl shadow-[#2D3436]/20 sticky top-28 space-y-8 text-white">
+              <div className="space-y-2">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-5xl font-black tracking-tighter">
+                    {finalPrice.toLocaleString()}
                   </span>
-                  {discountValue > 0 && (
-                    <span className="bg-red-600 text-white px-2 py-1 rounded-md text-xs font-black">
-                      خصم {discountPercentage}%
-                    </span>
-                  )}
+                  <span className="text-sm font-bold text-[#C3CBB9]">ج.م</span>
                 </div>
+
                 {discountValue > 0 && (
-                  <p className="text-gray-400 line-through font-bold text-sm">
-                    {basePrice.toLocaleString()} ج.م
-                  </p>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[#C3CBB9] line-through font-bold text-lg">
+                      {basePrice.toLocaleString()} ج.م
+                    </span>
+                    <span className="bg-[#E29595] text-white px-3 py-1 rounded-lg text-xs font-black animate-pulse">
+                      وفر {discountPercentage}%
+                    </span>
+                  </div>
                 )}
               </div>
-              <p
-                className={`font-bold text-xl ${
-                  product.is_available ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                {product.is_available
-                  ? "متاح للطلب، اطلب الان!"
-                  : "غير متاح، سيتوفّر قريباً"}
-              </p>
-              <button
-                onClick={handleAddToCart}
-                disabled={!product.is_available || adding}
-                className={`w-full py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 transition-all ${
-                  product.is_available
-                    ? "bg-black cursor-pointer text-white hover:bg-gray-800 shadow-lg"
-                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                }`}
-              >
-                {adding ? (
-                  <Loader2 className="animate-spin" size={20} />
-                ) : (
-                  <ShoppingBag size={20} />
-                )}
-                {product.is_available ? "أضف للسلة" : "غير متوفر حالياً"}
-              </button>
+
+              <div className="space-y-4">
+                <div
+                  className={`flex items-center gap-2 font-bold p-3 rounded-2xl border ${
+                    product.is_available
+                      ? "border-[#5F6F52]/30 bg-[#5F6F52]/10 text-[#C3CBB9]"
+                      : "border-red-900/30 bg-red-900/10 text-red-400"
+                  }`}
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      product.is_available
+                        ? "bg-[#5F6F52] shadow-[0_0_10px_#5F6F52]"
+                        : "bg-red-500"
+                    }`}
+                  />
+                  {product.is_available
+                    ? "متوفر في المخزن"
+                    : "غير متوفر حالياً"}
+                </div>
+
+                <button
+                  onClick={handleAddToCart}
+                  disabled={!product.is_available || adding}
+                  className={`w-full py-5 rounded-[2rem] font-black text-lg flex items-center justify-center gap-3 transition-all duration-500 ${
+                    product.is_available
+                      ? "bg-white text-[#2D3436] hover:bg-[#F8F9F4] hover:scale-[1.02] shadow-xl"
+                      : "bg-white/10 text-white/30 cursor-not-allowed"
+                  }`}
+                >
+                  {adding ? (
+                    <Loader2 className="animate-spin" size={24} />
+                  ) : (
+                    <ShoppingBag size={24} />
+                  )}
+                  {product.is_available ? "أضف للحقيبة" : "نفد من المخزن"}
+                </button>
+              </div>
+
+              <div className="pt-4 border-t border-white/10 flex flex-col gap-3">
+                <div className="flex items-center gap-3 text-[10px] text-[#C3CBB9] font-bold">
+                  <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
+                    <ShieldCheck size={16} />
+                  </div>
+                  ضمان جودة من هاف مليون
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-20 space-y-12">
-          {/* المكونات والفوائد */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* أقسام المعلومات الإضافية (المكونات والنتائج) */}
+        <div className="mt-24 space-y-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {product.ingredients?.length > 0 && (
-              <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm">
-                <h3 className="text-2xl font-black mb-8 flex items-center gap-3">
-                  <FlaskConical size={28} className="text-grey-600" /> تركيبة
-                  المنتج
+              <div className="bg-white p-12 rounded-[3.5rem] border border-[#C3CBB9]/20 shadow-sm relative overflow-hidden">
+                <FlaskConical
+                  className="absolute -bottom-10 -left-10 text-[#F8F9F4]"
+                  size={200}
+                />
+                <h3 className="text-3xl font-black text-[#2D3436] mb-10 flex items-center gap-4 relative z-10">
+                  <div className="p-3 bg-[#5F6F52]/10 rounded-2xl text-[#5F6F52]">
+                    <FlaskConical size={32} />
+                  </div>
+                  المكونات السرية
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
                   {product.ingredients.map((ing, i) => (
                     <div
                       key={i}
-                      className="flex items-center gap-3 p-4 bg-grey-50/50 rounded-xl border border-grey-100/50"
+                      className="flex items-center gap-4 p-5 bg-[#F8F9F4] rounded-[1.5rem] border border-[#C3CBB9]/10 hover:border-[#5F6F52]/30 transition-colors"
                     >
-                      <div className="w-2 h-2 bg-grey-400 rounded-full"></div>
-                      <span className="text-sm font-bold text-grey-900">
+                      <div className="w-2 h-2 bg-[#5F6F52] rounded-full shadow-[0_0_8px_rgba(95,111,82,0.5)]"></div>
+                      <span className="text-sm font-black text-[#2D3436]">
                         {ing}
                       </span>
                     </div>
@@ -368,22 +401,30 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                 </div>
               </div>
             )}
+
             {product.benefits?.length > 0 && (
-              <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm">
-                <h3 className="text-2xl font-black mb-8 flex items-center gap-3">
-                  <CheckCircle2 size={28} className="text-green-600" /> النتائج
-                  المتوقعة
+              <div className="bg-[#5F6F52] p-12 rounded-[3.5rem] shadow-xl relative overflow-hidden text-white">
+                <Star
+                  className="absolute top-10 right-10 text-white/5"
+                  size={150}
+                />
+                <h3 className="text-3xl font-black mb-10 flex items-center gap-4 relative z-10">
+                  <div className="p-3 bg-white/10 rounded-2xl text-white">
+                    <CheckCircle2 size={32} />
+                  </div>
+                  النتائج المتوقعة
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-4 relative z-10">
                   {product.benefits.map((benefit, i) => (
                     <div
                       key={i}
-                      className="flex gap-4 items-start p-4 bg-green-50/50 rounded-2xl"
+                      className="flex gap-4 items-start p-5 bg-white/10 rounded-[1.5rem] backdrop-blur-md border border-white/5"
                     >
-                      <div className="bg-green-100 p-1 rounded-full mt-1">
-                        <CheckCircle2 size={14} className="text-green-600" />
-                      </div>
-                      <p className="font-bold text-green-900 text-sm leading-relaxed">
+                      <CheckCircle2
+                        size={20}
+                        className="text-[#C3CBB9] shrink-0 mt-1"
+                      />
+                      <p className="font-bold text-[#F8F9F4] leading-relaxed italic">
                         {benefit}
                       </p>
                     </div>
@@ -393,97 +434,125 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
             )}
           </div>
 
-          {/* الاستخدام والتحذيرات */}
-          {(product.usage_instructions?.length > 0 ||
-            product.warnings?.length > 0) && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              {product.usage_instructions?.length > 0 && (
-                <div className="lg:col-span-8 bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm">
-                  <h3 className="text-2xl font-black mb-8">
-                    خطوات الاستخدام المثالية
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {product.usage_instructions.map((step, i) => (
+          {/* خطوات الاستخدام */}
+          {product.usage_instructions?.length > 0 && (
+            <div className="bg-white p-12 rounded-[3.5rem] border border-[#C3CBB9]/20 shadow-sm">
+              <h3 className="text-3xl font-black text-[#2D3436] mb-12 text-center italic">
+                طقوس الاستخدام المثالية
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {product.usage_instructions.map((step, i) => (
+                  <div
+                    key={i}
+                    className="group relative p-8 bg-[#F8F9F4] rounded-[2.5rem] border border-transparent hover:border-[#5F6F52]/20 transition-all duration-500"
+                  >
+                    <span className="absolute -top-4 -right-4 w-12 h-12 bg-[#2D3436] text-white flex items-center justify-center rounded-2xl text-xl font-black shadow-lg group-hover:bg-[#5F6F52] transition-colors">
+                      {i + 1}
+                    </span>
+                    <p className="text-[#2D3436] font-bold leading-relaxed pt-2">
+                      {step}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* قسم التنبيهات الهامة - عرض كامل الشاشة */}
+          {product.warnings?.length > 0 && (
+            <div className="mt-16 w-full">
+              <div className="bg-[#E29595]/5 p-8 md:p-12 rounded-[3.5rem] border border-[#E29595]/20 relative overflow-hidden group">
+                {/* لمسة فنية: أيقونة خلفية ضخمة باهتة */}
+                <AlertTriangle
+                  className="absolute -bottom-10 -left-10 text-[#E29595]/10 rotate-12 transition-transform duration-700 group-hover:rotate-0"
+                  size={250}
+                />
+
+                <div className="relative z-10">
+                  <div className="flex items-center gap-4 mb-10">
+                    <div className="p-3 bg-[#E29595] text-white rounded-[1.2rem] shadow-lg shadow-[#E29595]/20">
+                      <AlertTriangle size={32} />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl md:text-3xl font-black text-[#2D3436]">
+                        تنبيهات هامة
+                      </h3>
+                      <p className="text-[#E29595] text-xs font-black uppercase tracking-widest mt-1">
+                        Safety & Precautions
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {product.warnings.map((warn, i) => (
                       <div
                         key={i}
-                        className="relative p-6 bg-gray-50 rounded-2xl border-r-4 border-black"
+                        className="flex gap-4 items-start p-6 bg-white/40 backdrop-blur-sm rounded-[2rem] border border-[#E29595]/10 hover:border-[#E29595]/30 transition-all duration-300 shadow-sm"
                       >
-                        <span className="absolute left-6 top-6 text-4xl font-black text-gray-200/50 italic">
-                          {i + 1}
-                        </span>
-                        <p className="text-gray-700 font-bold relative z-10 leading-relaxed">
-                          {step}
+                        <div className="w-2 h-2 bg-[#E29595] rounded-full mt-2 shrink-0 shadow-[0_0_10px_#E29595]"></div>
+                        <p className="text-[#2D3436] text-sm md:text-base font-bold leading-relaxed">
+                          {warn}
                         </p>
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
-              {product.warnings?.length > 0 && (
-                <div className="lg:col-span-4 bg-red-50 p-10 rounded-[2.5rem] border border-red-100">
-                  <h3 className="text-xl font-black text-red-900 mb-6 flex items-center gap-2">
-                    <AlertTriangle size={24} /> تنبيهات هامة
-                  </h3>
-                  <ul className="space-y-4">
-                    {product.warnings.map((warn, i) => (
-                      <li
-                        key={i}
-                        className="text-red-800 text-sm font-bold flex gap-3 leading-relaxed"
-                      >
-                        <div className="w-1.5 h-1.5 bg-red-400 rounded-full mt-2 shrink-0"></div>
-                        {warn}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+
+                {/* خط زخرفي علوي */}
+                <div className="absolute top-0 right-0 w-32 h-1 bg-gradient-to-l from-[#E29595] to-transparent" />
+              </div>
             </div>
           )}
 
-          {/* المقارنة الذكية */}
+          {/* المقارنة الذكية (Comparison) */}
           {comparisonProduct && (
-            <div className="pt-20 border-t border-gray-100">
+            <div className="pt-20">
               <div className="max-w-5xl mx-auto">
-                <h3 className="text-3xl font-black text-center mb-12 flex items-center justify-center gap-4">
-                  مقارنة بين منتجين{" "}
-                  <ArrowLeftRight size={32} className="text-gray-400" />
-                </h3>
+                <div className="flex flex-col items-center mb-16 space-y-4">
+                  <div className="bg-[#E29595]/10 text-[#E29595] px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest border border-[#E29595]/20">
+                    The Smart Choice
+                  </div>
+                  <h3 className="text-4xl font-black text-[#2D3436] text-center">
+                    لماذا قد تفضلين هذا البديل؟
+                  </h3>
+                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-8 bg-white p-10 rounded-[3rem] border border-gray-100 shadow-sm relative overflow-hidden">
-                  {/* المنتج الحالي */}
-                  <div className="text-center space-y-4">
-                    <div className="w-40 h-40 mx-auto bg-gray-50 rounded-3xl p-4 border border-gray-100">
+                <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-10 bg-white p-12 rounded-[4rem] border border-[#C3CBB9]/20 shadow-xl relative">
+                  <div className="text-center group">
+                    <div className="w-48 h-48 mx-auto bg-[#F8F9F4] rounded-[3rem] p-6 border border-[#C3CBB9]/10 group-hover:scale-105 transition-transform duration-500">
                       <img
                         src={images[0]?.image_url}
                         alt={product.name}
                         className="w-full h-full object-contain"
                       />
                     </div>
-                    <h4 className="font-black text-lg">{product.name}</h4>
+                    <h4 className="mt-6 font-black text-[#2D3436]">
+                      {product.name}
+                    </h4>
                   </div>
 
-                  {/* وجه المقارنة */}
-                  <div className="text-center space-y-4 px-6 border-x border-gray-100">
-                    <span className="bg-black text-white px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest">
-                      Vs
-                    </span>
-                    <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
-                      <p className="text-gray-600 font-bold leading-relaxed">
+                  <div className="text-center relative">
+                    <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#C3CBB9] to-transparent -translate-y-1/2 hidden md:block" />
+                    <div className="relative z-10 bg-[#2D3436] text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto font-black shadow-xl rotate-12">
+                      VS
+                    </div>
+                    <div className="mt-8 bg-[#F8F9F4] p-6 rounded-[2rem] border border-[#C3CBB9]/20">
+                      <p className="text-[#5F6F52] font-bold leading-relaxed text-sm italic">
                         {product.comparison_text ||
-                          "تم اختيار هذا المنتج كبديل أو مكمل ذكي لهذا المنتج."}
+                          "تم اختيار هذا المنتج كبديل أو مكمل ذكي لهذا المنتج بناءً على تركيبته المتميزة."}
                       </p>
                     </div>
                   </div>
 
-                  {/* المنتج المقارن به (قابل للضغط لفتح المودال) */}
                   <div
                     onClick={() => setIsModalOpen(true)}
-                    className="text-center space-y-4 cursor-pointer group"
+                    className="text-center cursor-pointer group"
                   >
-                    <div className="w-40 h-40 mx-auto bg-gray-50 rounded-3xl p-4 border border-gray-100 group-hover:border-black transition-all group-hover:shadow-lg relative overflow-hidden">
-                      {/* تلميح للضغط */}
-                      <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                        <Info className="text-black" />
+                    <div className="w-48 h-48 mx-auto bg-[#F8F9F4] rounded-[3rem] p-6 border border-[#C3CBB9]/10 group-hover:border-[#E29595] group-hover:shadow-2xl transition-all duration-500 relative">
+                      <div className="absolute inset-0 bg-[#E29595]/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-[3rem] flex items-center justify-center">
+                        <span className="bg-white text-[#2D3436] px-4 py-2 rounded-full font-black text-[10px] shadow-sm">
+                          اكتشفي الآن
+                        </span>
                       </div>
                       <img
                         src={
@@ -493,31 +562,28 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                           comparisonProduct.product_images?.[0]?.image_url
                         }
                         alt={comparisonProduct.name}
-                        className="w-full h-full object-contain group-hover:scale-105 transition-transform"
+                        className="w-full h-full object-contain"
                       />
                     </div>
-                    <h4 className="font-black text-lg group-hover:text-black transition-colors underline-offset-4 group-hover:underline">
+                    <h4 className="mt-6 font-black text-[#2D3436] group-hover:text-[#E29595] transition-colors underline-offset-8 group-hover:underline">
                       {comparisonProduct.name}
                     </h4>
-                    <span className="text-[10px] font-black text-gray-400 bg-gray-100 px-2 py-1 rounded uppercase">
-                      انقر للتفاصيل
-                    </span>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* الفيديو */}
+          {/* فيديو اليوتيوب */}
           {videoId && (
-            <div className="pt-20 border-t border-gray-100 text-center">
-              <h3 className="text-3xl font-black mb-10 text-gray-900">
-                شاهد المنتج في العمل
+            <div className="pt-24 text-center">
+              <h3 className="text-4xl font-black mb-12 text-[#2D3436] tracking-tight italic underline decoration-[#5F6F52] decoration-4 underline-offset-8">
+                سر الجمال في خطوات..
               </h3>
-              <div className="max-w-4xl mx-auto aspect-video rounded-[3rem] overflow-hidden shadow-2xl bg-black ring-[15px] ring-white">
+              <div className="max-w-5xl mx-auto aspect-video rounded-[4rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(45,52,54,0.3)] bg-black ring-[1px] ring-white/10 relative group">
                 <iframe
                   className="w-full h-full"
-                  src={`https://www.youtube.com/embed/${videoId}`}
+                  src={`https://www.youtube.com/embed/${videoId}?autoplay=0&controls=1&rel=0`}
                   frameBorder="0"
                   allowFullScreen
                 ></iframe>
@@ -525,13 +591,21 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
             </div>
           )}
 
-          {/* قد يعجبك أيضاً */}
+          {/* المنتجات ذات الصلة */}
           {relatedProducts.length > 0 && (
-            <div className="pt-24 border-t border-gray-100">
-              <h3 className="text-3xl font-black text-gray-900 mb-10">
-                قد يعجبك أيضاً
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="pt-32">
+              <div className="flex items-center justify-between mb-12">
+                <h3 className="text-4xl font-black text-[#2D3436]">
+                  قد تعشقين أيضاً..
+                </h3>
+                <Link
+                  href="/all-products"
+                  className="text-[#5F6F52] font-black border-b-2 border-[#5F6F52] hover:text-[#2D3436] transition-all pb-1"
+                >
+                  عرض الكل
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {relatedProducts.map((p) => {
                   const pImg =
                     p.product_images?.find((i) => i.is_main)?.image_url ||
@@ -540,20 +614,26 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                     <Link
                       key={p.id}
                       href={`/product/${p.id}`}
-                      className="group bg-white p-5 rounded-[2.5rem] border border-gray-100 hover:border-black transition-all"
+                      className="group bg-white p-6 rounded-[3rem] border border-[#C3CBB9]/20 hover:border-[#5F6F52] transition-all duration-500"
                     >
-                      <div className="aspect-square bg-gray-50 rounded-[1.5rem] overflow-hidden mb-4 p-4">
+                      <div className="aspect-[4/5] bg-[#F8F9F4] rounded-[2rem] overflow-hidden mb-6 relative">
                         <img
                           src={pImg}
-                          className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                         />
                       </div>
-                      <h4 className="font-black text-gray-900 line-clamp-1">
+                      <h4 className="font-black text-[#2D3436] line-clamp-1 group-hover:text-[#5F6F52] transition-colors tracking-tight text-lg">
                         {p.name}
                       </h4>
-                      <p className="text-black font-black mt-2">
-                        {Number(p.base_price).toLocaleString()} ج.م
-                      </p>
+                      <div className="flex items-center justify-between mt-4">
+                        <p className="text-[#2D3436] font-black">
+                          {Number(p.base_price).toLocaleString()}{" "}
+                          <span className="text-[10px]">ج.م</span>
+                        </p>
+                        <div className="w-10 h-10 bg-[#F8F9F4] rounded-full flex items-center justify-center group-hover:bg-[#2D3436] group-hover:text-white transition-all">
+                          <ShoppingBag size={18} />
+                        </div>
+                      </div>
                     </Link>
                   );
                 })}

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import { ArrowLeft, Tag, Sparkles, Plus, Loader2 } from "lucide-react";
+import { Sparkles, ArrowLeft, Loader2, Plus } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import toast from "react-hot-toast";
 
@@ -69,35 +69,40 @@ export default function LatestOffers() {
   if (offers.length === 0) return null;
 
   return (
-    <section className="py-16 px-4 md:px-12 max-w-[1600px] mx-auto" dir="rtl">
-      {/* رأس القسم */}
-      <div className="flex flex-col md:flex-row items-end justify-between mb-10 gap-4">
+    <section
+      className="py-20 px-4 md:px-12 max-w-[1600px] mx-auto bg-transparent"
+      dir="rtl"
+    >
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row items-end justify-between mb-12 gap-6">
         <div>
-          <div className="flex items-center gap-2 mb-2 text-amber-600">
-            <Sparkles size={18} />
-            <span className="text-sm font-bold tracking-widest uppercase">
+          <div className="flex items-center gap-2 mb-3 text-[#5F6F52]">
+            <Sparkles size={20} className="animate-pulse" />
+            <span className="text-xs font-black tracking-[0.2em] uppercase">
               فرص لا تعوّض
             </span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-black text-gray-900">
+          <h2 className="text-4xl md:text-5xl font-black text-[#2D3436]">
             أحدث العروض الحصرية
           </h2>
         </div>
 
         <Link
           href="/offers"
-          className="group flex items-center gap-2 text-sm font-bold text-black hover:text-gray-600 transition-colors"
+          className="group flex items-center gap-3 text-sm font-black text-[#5F6F52] hover:text-[#2D3436] transition-all"
         >
           عرض كل العروض
-          <ArrowLeft
-            size={18}
-            className="group-hover:-translate-x-1 transition-transform"
-          />
+          <div className="p-2 rounded-full border border-[#C3CBB9] group-hover:bg-[#C3CBB9] transition-all">
+            <ArrowLeft
+              size={16}
+              className="group-hover:-translate-x-1 transition-transform"
+            />
+          </div>
         </Link>
       </div>
 
-      {/* شبكة العروض */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+      {/* Offers Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
         {offers.map((offer) => {
           const discountPercent = Math.round(
             ((offer.old_price - offer.new_price) / offer.old_price) * 100
@@ -108,46 +113,47 @@ export default function LatestOffers() {
             <div key={offer.id} className="group relative flex flex-col h-full">
               <Link
                 href={`/offers/${offer.id}`}
-                className="relative bg-white rounded-[2rem] border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-500 flex flex-col h-full pb-20"
+                className="relative bg-white/60 backdrop-blur-md rounded-[2.5rem] border border-white overflow-hidden hover:shadow-2xl transition-all duration-500 flex flex-col h-full pb-24 hover:-translate-y-2"
               >
-                {/* شارة الخصم */}
-                <div className="absolute top-4 right-4 z-10 bg-black text-white px-3 py-1 rounded-full font-bold text-[11px]">
+                {/* Exclusive Discount Badge */}
+                <div className="absolute top-5 right-5 z-10 bg-[#E29595] text-white px-4 py-2 rounded-full font-black text-[12px] shadow-lg">
                   وفر {discountPercent}%
                 </div>
 
-                <div className="aspect-[16/9] overflow-hidden">
+                <div className="aspect-[16/10] overflow-hidden">
                   <img
                     src={offer.image_url}
                     alt={offer.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[1.5s]"
                   />
                 </div>
 
-                <div className="p-6">
-                  <h3 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-amber-600 transition-colors">
+                <div className="p-8">
+                  <h3 className="text-xl font-black text-[#2D3436] mb-3 group-hover:text-[#5F6F52] transition-colors leading-tight">
                     {offer.name}
                   </h3>
 
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl font-black text-black">
-                      {offer.new_price.toLocaleString()} ج.م
+                  <div className="flex items-center gap-4">
+                    <span className="text-2xl font-black text-[#2D3436]">
+                      {offer.new_price.toLocaleString()}{" "}
+                      <span className="text-xs">ج.م</span>
                     </span>
-                    <span className="text-xs text-gray-400 line-through font-medium">
+                    <span className="text-sm text-gray-400 line-through font-bold">
                       {offer.old_price.toLocaleString()} ج.م
                     </span>
                   </div>
                 </div>
               </Link>
 
-              {/* زر أضف للسلة مخصص للعروض */}
-              <div className="absolute bottom-5 left-0 w-full px-5">
+              {/* Premium Add to Cart Button */}
+              <div className="absolute bottom-6 left-0 w-full px-8">
                 <button
                   disabled={isAdding}
                   onClick={(e) => handleAddToCart(e, offer)}
-                  className={`w-full py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-md ${
+                  className={`w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-xl ${
                     isAdding
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-black text-white hover:bg-gray-600 active:scale-95"
+                      ? "bg-gray-100 text-gray-400"
+                      : "bg-[#2D3436] text-white hover:bg-[#5F6F52] active:scale-95 shadow-[#2d3436]/20"
                   }`}
                 >
                   {isAdding ? (
@@ -157,8 +163,8 @@ export default function LatestOffers() {
                     </>
                   ) : (
                     <>
-                      <Plus size={18} />
-                      أضف للسلة
+                      <Plus size={20} />
+                      أضف للعرض
                     </>
                   )}
                 </button>
@@ -168,11 +174,11 @@ export default function LatestOffers() {
         })}
       </div>
 
-      {/* زر العرض للجوال */}
-      <div className="md:hidden flex justify-center">
+      {/* Mobile View All Button */}
+      <div className="md:hidden flex justify-center mt-4">
         <Link
           href="/offers"
-          className="w-full text-center bg-gray-100 text-black py-4 rounded-2xl font-bold text-sm"
+          className="w-full text-center bg-[#C3CBB9]/20 text-[#5F6F52] py-5 rounded-3xl font-black text-sm border border-[#C3CBB9]/30"
         >
           مشاهدة جميع العروض
         </Link>

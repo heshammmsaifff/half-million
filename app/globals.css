@@ -1,7 +1,9 @@
 @import "tailwindcss";
 
 body {
-  background-color: #f4f4f4;
+  background: linear-gradient(180deg, #ffffff 0%, #f9f7f5 100%);
+  background-attachment: fixed;
+  color: #333333;
 }
 
 /* حاوية البراندات السوداء */

@@ -8,7 +8,6 @@ export default function BrandsMarquee() {
 
   useEffect(() => {
     const fetchBrands = async () => {
-      // جلب البيانات من جدول البراندات
       const { data } = await supabase
         .from("brands")
         .select("id, image_url, name");
@@ -19,11 +18,10 @@ export default function BrandsMarquee() {
 
   if (brands.length === 0) return null;
 
-  // مضاعفة العناصر لضمان عدم وجود انقطاع في الشريط
   const displayItems = [...brands, ...brands, ...brands, ...brands, ...brands];
 
   return (
-    <div className="brands-marquee-container">
+    <div className="brands-marquee-container shadow-inner group">
       <div className="marquee-track" dir="ltr">
         {displayItems.map((brand, index) => (
           <Link
@@ -34,7 +32,8 @@ export default function BrandsMarquee() {
             <img
               src={brand.image_url}
               alt={brand.name}
-              className="brand-img rounded-2xl"
+              /* Added grayscale filter to unify logos, turns to full color on hover */
+              className="brand-img rounded-2xl grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-500 ease-in-out"
               loading="lazy"
             />
           </Link>

@@ -10,6 +10,7 @@ import {
   MapPin,
   ArrowUpRight,
   X,
+  Heart,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -17,24 +18,19 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
   const [modalContent, setModalContent] = useState(null);
 
-  // محتوى السياسات
   const policies = {
     terms: {
       title: "الشروط والأحكام",
       content: (
-        <div className="space-y-4 text-gray-300 leading-relaxed">
+        <div className="space-y-4 text-gray-400 leading-relaxed text-sm">
           <p>
-            أهلاً بك في Half Million. باستخدامك لموقعنا، فإنك توافق على الالتزام
-            بالشروط التالية:
+            أهلاً بك في <span className="text-[#C3CBB9]">Half Million</span>.
+            باستخدامك لموقعنا، فإنك توافق على الالتزام بالشروط التالية:
           </p>
           <ul className="list-disc list-inside space-y-2">
             <li>جميع المنتجات المعروضة تخضع للتوافر في المخزون.</li>
-            <li>
-              نلتزم بتقديم معلومات دقيقة حول المنتجات، ولكن قد تحدث أخطاء تقنية
-              أحياناً.
-            </li>
-            <li>يُحظر استخدام المحتوى الخاص بنا لأغراض تجارية دون إذن مسبق.</li>
-            <li>نحتفظ بالحق في تعديل الأسعار أو شروط الخدمة في أي وقت.</li>
+            <li>نلتزم بتقديم معلومات دقيقة حول المنتجات.</li>
+            <li>يُحظر استخدام المحتوى الخاص بنا لأغراض تجارية دون إذن.</li>
           </ul>
         </div>
       ),
@@ -42,23 +38,12 @@ const Footer = () => {
     privacy: {
       title: "سياسة الخصوصية",
       content: (
-        <div className="space-y-4 text-gray-300 leading-relaxed">
-          <p>خصوصيتك تهمنا. إليك كيف نتعامل مع بياناتك:</p>
+        <div className="space-y-4 text-gray-400 leading-relaxed text-sm">
+          <p>خصوصيتك تهمنا جداً:</p>
           <ul className="list-disc list-inside space-y-2">
-            <li>
-              نقوم بجمع البيانات الشخصية الأساسية (الاسم، العنوان، الهاتف)
-              لإتمام الطلبات فقط.
-            </li>
-            <li>
-              لا نقوم ببيع أو مشاركة بياناتك مع أي طرف ثالث لأغراض تسويقية.
-            </li>
-            <li>
-              نستخدم ملفات تعريف الارتباط (Cookies) لتحسين تجربة التصفح الخاصة
-              بك.
-            </li>
-            <li>
-              بيانات الدفع مشفرة تماماً عبر بوابات دفع آمنة ومعتمدة عالمياً.
-            </li>
+            <li>نقوم بجمع البيانات الأساسية لإتمام الطلبات فقط.</li>
+            <li>لا نقوم بمشاركة بياناتك مع أي طرف ثالث.</li>
+            <li>بيانات الدفع مشفرة تماماً عبر بوابات آمنة.</li>
           </ul>
         </div>
       ),
@@ -66,104 +51,107 @@ const Footer = () => {
   };
 
   return (
-    <footer className="relative bg-[#0A0A0A] text-white pt-20 pb-10" dir="rtl">
+    <footer
+      className="relative bg-[#1A1C17] text-white pt-24 pb-12 overflow-hidden"
+      dir="rtl"
+    >
+      {/* Decorative Element */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-[#C3CBB9]/30 to-transparent" />
+
       <div className="max-w-7xl mx-auto px-6">
-        {/* الجزء العلوي: اللوجو */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pb-16 border-b border-white/10">
-          <div className="space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center overflow-hidden">
-                <img
-                  src="/logo.svg"
-                  alt="Half Million"
-                  className="w-full h-full object-contain p-2"
-                  onError={(e) => {
-                    e.target.style.display = "none";
-                    e.target.nextSibling.style.display = "block";
-                  }}
-                />
-                <span className="hidden font-black text-black text-xl">HM</span>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 pb-20">
+          {/* Brand Column */}
+          <div className="lg:col-span-5 space-y-8">
+            <div className="flex items-center gap-5">
+              <div className="w-16 h-16 bg-[#C3CBB9] rounded-[1.5rem] flex items-center justify-center shadow-lg shadow-[#C3CBB9]/10">
+                <Link href="/" className="h-10">
+                  <img
+                    src="/logo.svg"
+                    alt="Logo"
+                    className="h-full object-contain"
+                  />
+                </Link>
               </div>
               <div>
-                <h2 className="text-2xl font-black tracking-tighter">
+                <h2 className="text-2xl font-black tracking-tight">
                   HALF MILLION
                 </h2>
-                <p className="text-gray-400 text-sm font-bold">
-                  الجمال والصحة في مكان واحد
+                <p className="text-[#C3CBB9] text-sm font-bold flex items-center gap-2">
+                  الجمال والصحة من الطبيعة{" "}
+                  <Heart size={12} className="fill-[#E29595] text-[#E29595]" />
                 </p>
               </div>
             </div>
-            <p className="text-gray-400 max-w-md leading-relaxed font-medium">
-              نحن نقدم لكِ أفضل تشكيلة من الفيتامينات ومستحضرات التجميل
-              العالمية، نهتم بأدق التفاصيل لنضمن لكِ تجربة تسوق فاخرة.
+            <p className="text-gray-400 max-w-md leading-relaxed font-medium text-lg">
+              نختار لكِ بعناية أجود الفيتامينات ومستحضرات التجميل العالمية،
+              لأننا نؤمن أن روتينك اليومي يستحق الأفضل.
             </p>
           </div>
-        </div>
 
-        {/* الجزء الأوسط: الروابط */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-12 py-16">
-          <div className="space-y-6">
-            <h4 className="text-sm font-black uppercase tracking-widest text-gray-500">
+          {/* Quick Links */}
+          <div className="lg:col-span-2 space-y-6">
+            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-[#C3CBB9]">
               التسوق
             </h4>
             <ul className="space-y-4 font-bold">
-              <li>
-                <Link
-                  href="/all-products"
-                  className="hover:text-gray-400 transition-colors flex items-center gap-1"
-                >
-                  المتجر <ArrowUpRight size={14} />
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/offers"
-                  className="hover:text-gray-400 transition-colors text-amber-400"
-                >
-                  العروض الحصرية
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/all-brands"
-                  className="hover:text-gray-400 transition-colors"
-                >
-                  العلامات التجارية
-                </Link>
-              </li>
+              {["المتجر", "العروض الحصرية", "العلامات التجارية"].map(
+                (item, i) => (
+                  <li key={i}>
+                    <Link
+                      href="#"
+                      className="text-gray-300 hover:text-white transition-colors flex items-center gap-2 group"
+                    >
+                      {item}{" "}
+                      <ArrowUpRight
+                        size={14}
+                        className="opacity-0 group-hover:opacity-100 transition-all -translate-y-1"
+                      />
+                    </Link>
+                  </li>
+                )
+              )}
             </ul>
           </div>
 
-          <div className="space-y-6">
-            <h4 className="text-sm font-black uppercase tracking-widest text-gray-500">
+          {/* Contact Info */}
+          <div className="lg:col-span-3 space-y-6">
+            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-[#C3CBB9]">
               تواصل معنا
             </h4>
-            <ul className="space-y-4 font-bold text-gray-300">
-              <li className="flex items-center gap-3">
-                <Phone size={18} className="text-white" />
-                <span dir="ltr">0100-000-0000</span>
+            <ul className="space-y-5 text-gray-300 font-medium">
+              <li className="flex items-center gap-4 group cursor-pointer">
+                <div className="p-3 rounded-xl bg-white/5 group-hover:bg-[#C3CBB9]/20 transition-colors">
+                  <Phone size={18} className="text-[#C3CBB9]" />
+                </div>
+                <span
+                  dir="ltr"
+                  className="group-hover:text-white transition-colors"
+                >
+                  0100-000-0000
+                </span>
               </li>
-              <li className="flex items-center gap-3">
-                <Mail size={18} className="text-white" />
-                example@example.com
-              </li>
-              <li className="flex items-start gap-3">
-                <MapPin size={18} className="text-white shrink-0" /> المحافظة،
-                الدولة
+              <li className="flex items-center gap-4 group cursor-pointer">
+                <div className="p-3 rounded-xl bg-white/5 group-hover:bg-[#C3CBB9]/20 transition-colors">
+                  <Mail size={18} className="text-[#C3CBB9]" />
+                </div>
+                <span className="group-hover:text-white transition-colors">
+                  hello@halfmillion.com
+                </span>
               </li>
             </ul>
           </div>
 
-          <div className="space-y-6">
-            <h4 className="text-sm font-black uppercase tracking-widest text-gray-500">
+          {/* Social Media */}
+          <div className="lg:col-span-2 space-y-6">
+            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-[#C3CBB9]">
               تابعونا
             </h4>
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               {[Instagram, Facebook, Twitter].map((Icon, idx) => (
                 <a
                   key={idx}
                   href="#"
-                  className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center hover:bg-white hover:text-black transition-all duration-300"
+                  className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center hover:bg-[#C3CBB9] hover:text-[#1A1C17] transition-all duration-500"
                 >
                   <Icon size={20} />
                 </a>
@@ -172,58 +160,55 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* الجزء السفلي: الحقوق والسياسات */}
-        <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-gray-500 text-sm font-bold text-center md:text-right">
+        {/* Bottom Bar */}
+        <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
+          <p className="text-gray-500 text-sm font-bold">
             جميع الحقوق محفوظة © {currentYear}{" "}
-            <span className="text-white">HALF MILLION</span>
+            <span className="text-[#C3CBB9]">HALF MILLION</span>
           </p>
-
-          <div className="flex items-center gap-6">
-            <div className="flex gap-4 text-xs text-gray-500 font-bold">
-              <button
-                onClick={() => setModalContent(policies.terms)}
-                className="hover:text-white transition-colors cursor-pointer"
-              >
-                الشروط والأحكام
-              </button>
-              <button
-                onClick={() => setModalContent(policies.privacy)}
-                className="hover:text-white transition-colors cursor-pointer"
-              >
-                سياسة الخصوصية
-              </button>
-            </div>
+          <div className="flex gap-8 text-xs font-black text-gray-500">
+            <button
+              onClick={() => setModalContent(policies.terms)}
+              className="hover:text-[#C3CBB9] transition-colors uppercase tracking-widest"
+            >
+              الشروط
+            </button>
+            <button
+              onClick={() => setModalContent(policies.privacy)}
+              className="hover:text-[#C3CBB9] transition-colors uppercase tracking-widest"
+            >
+              الخصوصية
+            </button>
           </div>
         </div>
       </div>
 
-      {/* المودال الاحترافي */}
+      {/* Modern Modal */}
       {modalContent && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
           <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-[#1A1C17]/90 backdrop-blur-md"
             onClick={() => setModalContent(null)}
           />
-          <div className="relative bg-[#111] border border-white/10 w-full max-w-lg rounded-[2rem] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
-            <div className="flex justify-between items-center p-6 border-b border-white/5 bg-white/5">
-              <h3 className="text-xl font-black">{modalContent.title}</h3>
+          <div className="relative bg-[#242721] border border-[#C3CBB9]/20 w-full max-w-lg rounded-[2.5rem] shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="flex justify-between items-center p-8 border-b border-white/5">
+              <h3 className="text-xl font-black text-white">
+                {modalContent.title}
+              </h3>
               <button
                 onClick={() => setModalContent(null)}
-                className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                className="p-2 hover:bg-white/5 rounded-full text-gray-400 hover:text-white transition-all"
               >
                 <X size={20} />
               </button>
             </div>
-            <div className="p-8 max-h-[70vh] overflow-y-auto custom-scrollbar text-right">
-              {modalContent.content}
-            </div>
-            <div className="p-6 border-t border-white/5 text-center">
+            <div className="p-10">{modalContent.content}</div>
+            <div className="p-8">
               <button
                 onClick={() => setModalContent(null)}
-                className="w-full py-3 bg-white text-black rounded-xl font-black hover:bg-gray-200 transition-colors"
+                className="w-full py-4 bg-[#C3CBB9] text-[#1A1C17] rounded-2xl font-black hover:bg-white transition-all shadow-xl shadow-[#C3CBB9]/10"
               >
-                حسناً، فهمت
+                إغلاق
               </button>
             </div>
           </div>

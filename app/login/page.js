@@ -9,18 +9,18 @@ import {
   Loader2,
   Eye,
   EyeOff,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true); // التبديل بين الدخول والاشتراك
+  const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
-  // الحقول
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -32,31 +32,36 @@ export default function AuthPage() {
     e.preventDefault();
     setLoading(true);
 
+    // تخصيص شكل تنبيهات SweetAlert لتناسب الهوية
+    const customSwal = Swal.mixin({
+      customClass: {
+        confirmButton:
+          "bg-[#2D3436] text-white px-8 py-3 rounded-xl font-black",
+      },
+      buttonsStyling: false,
+    });
+
     if (isLogin) {
-      // --- منطق تسجيل الدخول ---
       const { error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
 
       if (error) {
-        Swal.fire({
+        customSwal.fire({
           icon: "error",
-          title: "خطأ في الدخول",
+          title: "فشل الدخول",
           text: "البريد الإلكتروني أو كلمة المرور غير صحيحة",
-          confirmButtonColor: "#000",
         });
       } else {
         router.push("/profile");
       }
     } else {
-      // --- منطق إنشاء حساب جديد ---
       if (formData.password !== formData.confirmPassword) {
-        Swal.fire({
+        customSwal.fire({
           icon: "warning",
           title: "تنبيه",
           text: "كلمات المرور غير متطابقة",
-          confirmButtonColor: "#000",
         });
         setLoading(false);
         return;
@@ -66,28 +71,23 @@ export default function AuthPage() {
         email: formData.email,
         password: formData.password,
         options: {
-          data: {
-            full_name: formData.fullName,
-          },
+          data: { full_name: formData.fullName },
         },
       });
 
       if (error) {
-        Swal.fire({
+        customSwal.fire({
           icon: "error",
           title: "فشل إنشاء الحساب",
           text: error.message,
-          confirmButtonColor: "#000",
         });
       } else {
-        Swal.fire({
+        customSwal.fire({
           icon: "success",
           title: "تم التسجيل بنجاح",
-          text: "يرجى الذهاب إلى بريدك الإلكتروني لتأكيد حسابك وتفعيل الدخول",
-          confirmButtonText: "موافق",
-          confirmButtonColor: "#22c55e",
+          text: "يرجى مراجعة بريدك الإلكتروني لتفعيل الحساب",
         });
-        setIsLogin(true); // ارجاعه لصفحة الدخول بعد التسجيل
+        setIsLogin(true);
       }
     }
     setLoading(false);
@@ -95,38 +95,48 @@ export default function AuthPage() {
 
   return (
     <div
-      className="min-h-screen bg-gray-50 flex items-center justify-center p-6"
+      className="min-h-screen bg-[#F8F9F4] flex items-center justify-center p-6"
       dir="rtl"
     >
-      <div className="bg-white w-full max-w-md rounded-[40px] shadow-xl border border-gray-100 p-8 md:p-12 relative overflow-hidden">
-        {/* Header */}
+      {/* العنصر الزخرفي الخلفي */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-5%] w-[400px] h-[400px] bg-[#5F6F52]/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-[#E29595]/5 rounded-full blur-3xl" />
+      </div>
+
+      <div className="bg-white w-full max-w-md rounded-[3.5rem] shadow-[0_30px_100px_rgba(95,111,82,0.1)] border border-[#C3CBB9]/20 p-8 md:p-12 relative z-10">
+        {/* Logo/Header */}
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-black text-black mb-3">
-            {isLogin ? "تسجيل الدخول" : "إنشاء حساب جديد"}
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#2D3436] rounded-2xl mb-6 shadow-xl shadow-[#2D3436]/20 rotate-3 group-hover:rotate-0 transition-transform">
+            <Sparkles className="text-[#E29595]" size={30} />
+          </div>
+          <h1 className="text-3xl font-black text-[#2D3436] mb-2">
+            {isLogin ? "مرحباً بكِ مجدداً" : "انضم لعالمنا"}
           </h1>
-          <p className="text-gray-400 font-bold text-sm">
+          {/* <p className="text-[#5F6F52] font-bold text-sm opacity-60">
             {isLogin
-              ? "أهلاً بك مجدداً في Half Million"
-              : "انضم إلينا واستمتع بأفضل العروض"}
-          </p>
+              ? "سجلي دخولكِ لمتابعة جمالكِ"
+              : "أنشئي حسابكِ للحصول على عروض حصرية"}
+          </p> */}
         </div>
 
         <form onSubmit={handleAuth} className="space-y-5">
-          {/* حقل الاسم (يظهر في الإنشاء فقط) */}
+          {/* حقل الاسم */}
           {!isLogin && (
-            <div className="space-y-2">
-              <label className="text-xs font-black text-gray-400 mr-2">
-                الاسم الكامل
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-black text-[#5F6F52] mr-4 uppercase tracking-wider">
+                الاسم بالكامل
               </label>
               <div className="relative">
                 <User
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300"
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-[#C3CBB9]"
                   size={18}
                 />
                 <input
                   type="text"
                   required
-                  className="w-full bg-gray-50 border-none rounded-2xl py-4 pr-12 pl-4 text-sm font-bold focus:ring-2 focus:ring-black transition-all"
+                  placeholder="أدخلِ اسمكِ الكامل"
+                  className="w-full bg-[#F8F9F4] border-2 border-transparent rounded-[1.2rem] py-4 pr-14 pl-4 text-sm font-bold focus:border-[#5F6F52]/20 focus:bg-white transition-all outline-none"
                   value={formData.fullName}
                   onChange={(e) =>
                     setFormData({ ...formData, fullName: e.target.value })
@@ -137,19 +147,20 @@ export default function AuthPage() {
           )}
 
           {/* حقل البريد */}
-          <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 mr-2">
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-black text-[#5F6F52] mr-4 uppercase tracking-wider">
               البريد الإلكتروني
             </label>
             <div className="relative">
               <Mail
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300"
+                className="absolute right-5 top-1/2 -translate-y-1/2 text-[#C3CBB9]"
                 size={18}
               />
               <input
                 type="email"
                 required
-                className="w-full bg-gray-50 border-none rounded-2xl py-4 pr-12 pl-4 text-sm font-bold focus:ring-2 focus:ring-black transition-all"
+                placeholder="name@example.com"
+                className="w-full bg-[#F8F9F4] border-2 border-transparent rounded-[1.2rem] py-4 pr-14 pl-4 text-sm font-bold focus:border-[#5F6F52]/20 focus:bg-white transition-all outline-none"
                 value={formData.email}
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
@@ -159,20 +170,20 @@ export default function AuthPage() {
           </div>
 
           {/* حقل كلمة السر */}
-          <div className="space-y-2">
-            <label className="text-xs font-black text-gray-400 mr-2">
-              كلمة السر
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-black text-[#5F6F52] mr-4 uppercase tracking-wider">
+              كلمة المرور
             </label>
             <div className="relative">
               <Lock
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300"
+                className="absolute right-5 top-1/2 -translate-y-1/2 text-[#C3CBB9]"
                 size={18}
               />
               <input
                 type={showPassword ? "text" : "password"}
                 required
                 placeholder="••••••••"
-                className="w-full bg-gray-50 border-none rounded-2xl py-4 pr-12 pl-12 text-sm font-bold focus:ring-2 focus:ring-black transition-all"
+                className="w-full bg-[#F8F9F4] border-2 border-transparent rounded-[1.2rem] py-4 pr-14 pl-12 text-sm font-bold focus:border-[#5F6F52]/20 focus:bg-white transition-all outline-none"
                 value={formData.password}
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
@@ -181,29 +192,29 @@ export default function AuthPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-black"
+                className="absolute left-5 top-1/2 -translate-y-1/2 text-[#C3CBB9] hover:text-[#5F6F52] transition-colors"
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
-          {/* حقل تأكيد كلمة السر (يظهر في الإنشاء فقط) */}
+          {/* تأكيد كلمة السر */}
           {!isLogin && (
-            <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
-              <label className="text-xs font-black text-gray-400 mr-2">
-                تأكيد كلمة السر
+            <div className="space-y-1.5 animate-in fade-in duration-500">
+              <label className="text-[11px] font-black text-[#5F6F52] mr-4 uppercase tracking-wider">
+                تأكيد كلمة المرور
               </label>
               <div className="relative">
                 <Lock
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300"
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-[#C3CBB9]"
                   size={18}
                 />
                 <input
                   type="password"
                   required
                   placeholder="••••••••"
-                  className="w-full bg-gray-50 border-none rounded-2xl py-4 pr-12 pl-4 text-sm font-bold focus:ring-2 focus:ring-black transition-all"
+                  className="w-full bg-[#F8F9F4] border-2 border-transparent rounded-[1.2rem] py-4 pr-14 pl-4 text-sm font-bold focus:border-[#5F6F52]/20 focus:bg-white transition-all outline-none"
                   value={formData.confirmPassword}
                   onChange={(e) =>
                     setFormData({
@@ -216,38 +227,35 @@ export default function AuthPage() {
             </div>
           )}
 
-          {/* نسيان كلمة السر */}
           {isLogin && (
-            <div className="text-left">
+            <div className="flex justify-end px-2">
               <Link
                 href="/forgot-password"
                 size={18}
-                className="text-xs font-black text-gray-400 hover:text-black"
+                className="text-[11px] font-black text-[#E29595] hover:text-[#5F6F52] transition-colors"
               >
-                نسيت كلمة السر؟
+                هل نسيتِ كلمة السر؟
               </Link>
             </div>
           )}
 
-          {/* زر التقديم */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-black text-white py-4 rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-50"
+            className="w-full bg-[#2D3436] text-white py-5 rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-[#5F6F52] transition-all shadow-xl shadow-[#2D3436]/10 active:scale-[0.98] disabled:opacity-50 mt-4"
           >
             {loading ? (
               <Loader2 className="animate-spin" />
-            ) : isLogin ? (
-              "تسجيل الدخول"
             ) : (
-              "إنشاء حساب"
+              <>
+                {isLogin ? "تسجيل الدخول" : "إنشاء حسابكِ الآن"}
+                <ArrowRight size={20} className="rotate-180" />
+              </>
             )}
-            <ArrowRight size={18} className="rotate-180" />
           </button>
         </form>
 
-        {/* التبديل بين الحالتين */}
-        <div className="mt-8 text-center">
+        <div className="mt-10 text-center border-t border-[#F8F9F4] pt-8">
           <button
             onClick={() => {
               setIsLogin(!isLogin);
@@ -258,20 +266,20 @@ export default function AuthPage() {
                 fullName: "",
               });
             }}
-            className="text-sm font-bold text-gray-500 hover:text-black"
+            className="text-sm font-bold text-[#5F6F52] hover:text-[#2D3436] transition-colors"
           >
             {isLogin ? (
               <>
-                ليس لديك حساب؟{" "}
-                <span className="text-black font-black underline">
-                  اشترك الآن
+                ليس لديكِ حساب؟{" "}
+                <span className="text-[#E29595] font-black border-b-2 border-[#E29595]/20 pb-0.5">
+                  انضم إلينا
                 </span>
               </>
             ) : (
               <>
-                لديك حساب بالفعل؟{" "}
-                <span className="text-black font-black underline">
-                  سجل دخولك
+                لديكِ حساب بالفعل؟{" "}
+                <span className="text-[#E29595] font-black border-b-2 border-[#E29595]/20 pb-0.5">
+                  سجل دخولكِ
                 </span>
               </>
             )}

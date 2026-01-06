@@ -29,40 +29,47 @@ const BrandStory = () => {
   ];
 
   return (
-    <section className="py-24  overflow-hidden" dir="rtl">
+    <section className="py-24 overflow-hidden bg-transparent" dir="rtl">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          {/* الجانب الأيمن: النص */}
+          {/* Right Content: Text & Features */}
           <div className="space-y-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-full">
-              <span className="text-sm font-black tracking-widest uppercase">
+            <div className="inline-flex items-center gap-2 px-5 py-2 bg-[#C3CBB9]/20 rounded-full border border-[#C3CBB9]/30">
+              <span className="text-xs font-bold tracking-[0.2em] uppercase text-[#5F6F52]">
                 عن Half Million
               </span>
-              <Heart size={16} className="text-red-500 fill-red-500" />
             </div>
 
-            <h2 className="text-5xl md:text-7xl font-black text-gray-900 leading-[1.1]">
+            <h2 className="text-5xl md:text-7xl font-black text-[#2D3436] leading-[1.1]">
               نهتم بجمالك <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-l from-gray-900 to-gray-500">
+              <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#5F6F52] to-[#A9B388]">
                 من الداخل والخارج
               </span>
             </h2>
 
-            <p className="text-xl text-gray-500 font-medium leading-relaxed max-w-xl">
-              في <span className="text-black font-bold">Half Million</span>،
-              نؤمن أن الجمال الحقيقي يبدأ بصحة جيدة. لذا جمعنا لكِ خلاصة العلم
-              في الفيتامينات، وأرقى صيحات المكياج ومستحضرات التجميل في مكان
-              واحد.
+            <p className="text-xl text-gray-600 font-medium leading-relaxed max-w-xl">
+              في{" "}
+              <span className="text-[#2D3436] font-extrabold border-b-2 border-[#C3CBB9]">
+                Half Million
+              </span>
+              ، نؤمن أن الجمال الحقيقي يبدأ بصحة جيدة. لذا جمعنا لكِ خلاصة العلم
+              في الفيتامينات، وأرقى صيحات المكياج في مكان واحد.
             </p>
 
+            {/* Feature Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8">
               {features.map((feature, index) => (
                 <div
                   key={index}
-                  className="p-6 bg-gray-50 rounded-[2rem] border border-transparent hover:border-black/5 transition-all"
+                  className="p-6 bg-white/50 backdrop-blur-sm rounded-[2.5rem] border border-white hover:border-[#C3CBB9] hover:shadow-xl transition-all duration-500 group"
                 >
-                  <div className="mb-4">{feature.icon}</div>
-                  <h4 className="font-black text-gray-900 mb-2">
+                  <div className="mb-4 p-3 bg-white w-fit rounded-2xl shadow-sm group-hover:scale-110 transition-transform">
+                    {/* Clone element to inject color if it's an icon */}
+                    {React.cloneElement(feature.icon, {
+                      className: "text-[#5F6F52]",
+                    })}
+                  </div>
+                  <h4 className="font-black text-[#2D3436] mb-2">
                     {feature.title}
                   </h4>
                   <p className="text-sm text-gray-500 font-bold leading-relaxed">
@@ -73,56 +80,37 @@ const BrandStory = () => {
             </div>
           </div>
 
-          {/* الجانب الأيسر: العرض البصري باستخدام img */}
+          {/* Left Content: Visual Masonry Grid */}
           <div className="relative">
             <div className="relative z-10 grid grid-cols-2 gap-4">
-              {/* العمود الأول */}
-              <div className="space-y-4 pt-12">
+              {[0, 1].map((colIndex) => (
                 <div
-                  className={`${images[0].height} rounded-[3rem] overflow-hidden shadow-2xl transition-transform hover:scale-105 duration-700`}
+                  key={colIndex}
+                  className={`space-y-4 ${colIndex === 0 ? "pt-12" : ""}`}
                 >
-                  <img
-                    src={images[0].src}
-                    alt={images[0].alt}
-                    className="w-full h-full object-cover"
-                  />
+                  {images
+                    .slice(colIndex * 2, colIndex * 2 + 2)
+                    .map((img, i) => (
+                      <div
+                        key={i}
+                        className={`${img.height} rounded-[3.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.1)] hover:shadow-[0_20px_50px_rgba(195,203,185,0.4)] transition-all duration-700 hover:-translate-y-2`}
+                      >
+                        <img
+                          src={img.src}
+                          alt={img.alt}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
                 </div>
-                <div
-                  className={`${images[1].height} rounded-[3rem] overflow-hidden shadow-2xl transition-transform hover:scale-105 duration-700`}
-                >
-                  <img
-                    src={images[1].src}
-                    alt={images[1].alt}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-
-              {/* العمود الثاني */}
-              <div className="space-y-4">
-                <div
-                  className={`${images[2].height} rounded-[3rem] overflow-hidden shadow-2xl transition-transform hover:scale-105 duration-700`}
-                >
-                  <img
-                    src={images[2].src}
-                    alt={images[2].alt}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div
-                  className={`${images[3].height} rounded-[3rem] overflow-hidden shadow-2xl transition-transform hover:scale-105 duration-700`}
-                >
-                  <img
-                    src={images[3].src}
-                    alt={images[3].alt}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
+              ))}
             </div>
 
-            {/* خلفية جمالية ضبابية */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%]  rounded-full -z-0 opacity-50 blur-3xl" />
+            {/* Artistic Background Blurs */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] -z-10 opacity-40 blur-3xl pointer-events-none">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-[#F5E6D3] rounded-full" />
+              <div className="absolute bottom-0 left-0 w-80 h-80 bg-[#C3CBB9] rounded-full" />
+            </div>
           </div>
         </div>
       </div>
