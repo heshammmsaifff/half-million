@@ -17,7 +17,7 @@ import {
 
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation"; // تم حذف useRef من هنا
 import { useCart } from "@/context/CartContext";
 import CartSidebar from "./CartSidebar";
 
@@ -30,20 +30,22 @@ export default function Navbar() {
   const [results, setResults] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-
-  // الحالة الخاصة بالمستخدم
   const [user, setUser] = useState(null);
 
   const [openMobileCat, setOpenMobileCat] = useState(null);
-  const [isMobileBrandsOpen, setIsMobileBrandsOpen] = useState(false);
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
   const [isBrandsMenuOpen, setIsBrandsMenuOpen] = useState(false);
 
   const { cart } = useCart();
   const searchRef = useRef(null);
+  const wrapperRef = useRef(null); // تعريف wrapperRef بشكل صحيح
   const router = useRouter();
   const pathname = usePathname();
 
+  // مصفوفة النتائج المصغرة للبحث
+  const previewResults = results.slice(0, 2);
+
+  // إغلاق كل القوائم عند تغيير الصفحة
   useEffect(() => {
     setIsOpen(false);
     setIsCartOpen(false);
@@ -53,6 +55,7 @@ export default function Navbar() {
     setSearchQuery("");
   }, [pathname]);
 
+  // جلب البيانات الأساسية
   useEffect(() => {
     const fetchData = async () => {
       const { data: catData } = await supabase
@@ -68,7 +71,6 @@ export default function Navbar() {
     };
     fetchData();
 
-    // التحقق من حالة المستخدم الحالية
     const checkUser = async () => {
       const {
         data: { user },
@@ -77,18 +79,16 @@ export default function Navbar() {
     };
     checkUser();
 
-    // الاستماع لتغييرات حالة تسجيل الدخول
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user ?? null);
       }
     );
 
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
+    return () => authListener.subscription.unsubscribe();
   }, []);
 
+  // منطق البحث التلقائي
   useEffect(() => {
     const delayDebounce = setTimeout(async () => {
       if (searchQuery.trim().length > 1) {
@@ -111,6 +111,7 @@ export default function Navbar() {
     return () => clearTimeout(delayDebounce);
   }, [searchQuery]);
 
+  // تعريف دالة البحث مرة واحدة فقط
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -420,19 +421,102 @@ export default function Navbar() {
 
           <div className="p-6 overflow-y-auto flex-1 custom-scrollbar space-y-6">
             {/* Search Mobile */}
-            <form onSubmit={handleSearchSubmit} className="relative">
-              <input
-                type="text"
-                placeholder="ابحثِ هنا..."
-                className="w-full bg-[#F8F9F4] border border-[#C3CBB9]/30 rounded-2xl py-4 px-5 pr-12 text-sm focus:outline-none focus:ring-4 focus:ring-[#5F6F52]/5 font-black"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <Search
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#5F6F52]"
-                size={20}
-              />
-            </form>
+            <div className="relative w-full" ref={wrapperRef} dir="rtl">
+              {/* حقل الإدخال وزر البحث */}
+              <form
+                onSubmit={handleSearchSubmit}
+                className="flex gap-2 items-center"
+              >
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="ابحثِ عن منتج..."
+                    className="w-full bg-[#F8F9F4] border border-[#C3CBB9]/30 rounded-2xl py-4 px-5 pr-12 text-sm focus:outline-none focus:ring-4 focus:ring-[#5F6F52]/5 font-black placeholder:text-[#C3CBB9]"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setIsOpen(e.target.value.length > 0);
+                    }}
+                    onFocus={() => searchQuery.length > 0 && setIsOpen(true)}
+                  />
+                  <Search
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#C3CBB9]"
+                    size={20}
+                  />
+                </div>
+
+                {/* زر البحث الجانبي */}
+                <button
+                  type="submit"
+                  className="bg-[#5F6F52] text-white p-4 rounded-2xl shadow-lg shadow-[#5F6F52]/20 active:scale-95 transition-all"
+                >
+                  <Search size={20} />
+                </button>
+              </form>
+
+              {/* القائمة المنسدلة للنتائج السريعة */}
+              {previewResults.length > 0 ? (
+                <>
+                  {previewResults.map((product) => {
+                    // الوصول للصورة الأولى في المصفوفة
+                    const displayImage =
+                      product.product_images?.[0]?.image_url ||
+                      "/placeholder-image.png";
+
+                    return (
+                      <Link
+                        key={product.id}
+                        href={`/product/${product.id}`}
+                        onClick={() => setIsOpen(false)}
+                        className="flex items-center gap-4 p-3 hover:bg-[#F8F9F4] rounded-xl transition-all group"
+                      >
+                        <div className="w-14 h-14 bg-white rounded-lg border border-[#C3CBB9]/10 overflow-hidden shrink-0 p-1">
+                          <img
+                            src={displayImage}
+                            alt={product.name}
+                            className="w-full h-full object-contain"
+                            // إضافة fallback في حال فشل تحميل الرابط
+                            onError={(e) => {
+                              e.target.src = "/placeholder-image.png";
+                            }}
+                          />
+                        </div>
+                        <div className="flex flex-col flex-1 min-w-0">
+                          <span className="text-sm font-black text-[#2D3436] truncate">
+                            {product.name}
+                          </span>
+                          <span className="text-xs font-bold text-[#5F6F52]">
+                            {product.base_price} ج.م
+                          </span>
+                        </div>
+                        <ArrowLeft
+                          size={16}
+                          className="text-[#C3CBB9] group-hover:text-[#5F6F52] transition-colors"
+                        />
+                      </Link>
+                    );
+                  })}
+
+                  {/* زر عرض كل النتائج */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleSearchSubmit(e);
+                      setIsOpen(false);
+                    }}
+                    className="w-full mt-2 py-4 bg-[#2D3436] text-white text-xs font-black rounded-xl flex items-center justify-center gap-2 hover:bg-[#5F6F52] transition-colors"
+                  >
+                    عرض كافة النتائج <Search size={14} />
+                  </button>
+                </>
+              ) : (
+                <div className="p-8 text-center">
+                  <p className="text-[#C3CBB9] text-sm font-bold">
+                    لا توجد منتجات مطابقة لـ "{searchQuery}"
+                  </p>
+                </div>
+              )}
+            </div>
 
             {/* Essential Links - Mobile */}
             <div className="grid grid-cols-1 gap-3">
