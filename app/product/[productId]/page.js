@@ -221,7 +221,12 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
             الرئيسية
           </Link>
           <ChevronRight size={12} className="rotate-180" />
-          <span>{product.sub_categories?.name}</span>
+          <Link
+            href={`/category/1/${product.sub_categories?.id}`}
+            className="hover:text-black hover:underline transition-all cursor-pointer"
+          >
+            {product.sub_categories?.name}
+          </Link>
           <ChevronRight size={12} className="rotate-180" />
           <span className="text-black truncate">{product.name}</span>
         </nav>
@@ -257,13 +262,23 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                 <span className="text-gray-500 flex items-center gap-2">
                   <Tag size={16} /> التصنيف
                 </span>
-                <span>{product.sub_categories?.name}</span>
+                <Link
+                  href={`/category/1/${product.sub_categories?.id}`}
+                  className="hover:text-black hover:underline transition-all cursor-pointer"
+                >
+                  {product.sub_categories?.name}
+                </Link>
               </div>
               <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-50 text-sm font-bold">
                 <span className="text-gray-500 flex items-center gap-2">
                   <Award size={16} /> الماركة
                 </span>
-                <span>{product.brands?.name || "Half Million"}</span>
+                <Link
+                  href={`/brand/${product.brands?.id}`}
+                  className="bg-blue-50 text-gray-600 px-3 py-1 rounded-md text-[12px] font-black hover:bg-blue-100 hover:text-blue-700 transition-all cursor-pointer"
+                >
+                  {product.brands?.name || "Half Million"}
+                </Link>{" "}
               </div>
             </div>
 

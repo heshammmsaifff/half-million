@@ -177,7 +177,7 @@ export default function OfferDetailsPage({ params: paramsPromise }) {
             className={`w-full py-7 rounded-[2rem] font-black text-2xl shadow-2xl transition-all flex items-center justify-center gap-4 ${
               isAdding
                 ? "bg-gray-800 cursor-not-allowed"
-                : "bg-black text-white hover:bg-red-600 active:scale-95"
+                : "bg-black text-white cursor-pointer hover:bg-red-600 active:scale-95"
             }`}
           >
             {isAdding ? (
