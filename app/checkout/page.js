@@ -110,16 +110,28 @@ export default function CheckoutPage() {
   };
 
   const uploadReceipt = async (file) => {
+    // 1. استخراج امتداد الملف (مثل jpg أو png)
     const fileExt = file.name.split(".").pop();
-    const fileName = `${currentUser.id}/${Date.now()}.${fileExt}`;
+
+    // 2. التحقق من وجود مستخدم؛ إذا لم يوجد نستخدم "guest" كمجلد للملف
+    const folderPath = currentUser ? currentUser.id : "guest_uploads";
+
+    // 3. إنشاء اسم ملف فريد (يجب تعريفه قبل استخدامه في الـ upload)
+    const fileName = `${folderPath}/${Date.now()}.${fileExt}`;
+
+    // 4. رفع الملف إلى Supabase Storage
     const { data, error } = await supabase.storage
       .from("receipts")
       .upload(fileName, file);
 
+    // إذا حدث خطأ في الرفع، نطلقه ليتم التقاطه في الـ catch الخاص بـ handleSubmit
     if (error) throw error;
+
+    // 5. الحصول على الرابط العام للملف المرفوع
     const {
       data: { publicUrl },
     } = supabase.storage.from("receipts").getPublicUrl(fileName);
+
     return publicUrl;
   };
 
@@ -168,20 +180,6 @@ export default function CheckoutPage() {
       setLoading(false);
     }
   };
-
-  // if (!isClient || !currentUser) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center bg-[#F8F9F4]">
-  //       <div className="text-center">
-  //         <Loader2
-  //           className="animate-spin text-[#5F6F52] mx-auto mb-4"
-  //           size={40}
-  //         />
-  //         <p className="text-[#5F6F52] font-bold">جاري التحقق من الحساب...</p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   if (orderCompleted) {
     return (
