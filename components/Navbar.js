@@ -277,7 +277,7 @@ export default function Navbar() {
               <div className="w-full flex items-center bg-[#F8F9F4] rounded-2xl px-5 py-3 border border-[#C3CBB9]/30 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#5F6F52]/5 focus-within:border-[#5F6F52] transition-all duration-300">
                 <input
                   type="text"
-                  placeholder="ابحثِ عن سر جمالكِ..."
+                  placeholder="ابحث عن منتج..."
                   className="bg-transparent border-none w-full px-1 text-sm focus:outline-none font-bold text-gray-700 placeholder:text-gray-400"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}

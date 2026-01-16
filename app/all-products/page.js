@@ -126,7 +126,7 @@ export default function AllProductsPage() {
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
         <Loader2 size={40} className="animate-spin text-[#5F6F52]" />
         <span className="font-black text-[#5F6F52] animate-pulse text-lg">
-          جاري تحضير الجمال...
+          جاري التحميل...
         </span>
       </div>
     );
@@ -328,7 +328,7 @@ export default function AllProductsPage() {
                     <Loader2 size={18} className="animate-spin" />
                   ) : (
                     <>
-                      <ShoppingCart size={18} /> أضف لجمالكِ{" "}
+                      <ShoppingCart size={18} /> أضف للسلة{" "}
                     </>
                   )}
                 </button>

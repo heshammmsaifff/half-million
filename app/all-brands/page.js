@@ -30,7 +30,7 @@ export default async function AllBrandsPage() {
           شركاء الأناقة والجمال
         </h1>
         <p className="text-[#5F6F52] font-bold text-lg opacity-70 max-w-2xl">
-          ننتقي لكِ أفضل الماركات العالمية لتنعمي بتجربة جمال لا مثيل لها
+          ننتقي لك أفضل الماركات العالمية لتنعم بتجربة لا مثيل لها
         </p>
       </div>
 
@@ -50,7 +50,7 @@ export default async function AllBrandsPage() {
                 <img
                   src={brand.image_url}
                   alt={brand.name}
-                  className="w-full h-full object-contain grayscale group-hover:grayscale-0 transition-all duration-500"
+                  className="w-full h-full object-contain group-hover:grayscale-0 transition-all duration-500"
                 />
               ) : (
                 <div className="w-20 h-20 bg-[#F8F9F4] rounded-full flex items-center justify-center">
@@ -81,9 +81,7 @@ export default async function AllBrandsPage() {
       {/* Footer Info */}
       <div className="mt-24 p-12 bg-[#2D3436] rounded-[3rem] text-center text-white overflow-hidden relative">
         <div className="relative z-10">
-          <h2 className="text-2xl font-black mb-4">
-            هل تبحثين عن ماركة معينة؟
-          </h2>
+          <h2 className="text-2xl font-black mb-4">هل تبحث عن ماركة معينة؟</h2>
           <p className="text-gray-300 mb-8 max-w-md mx-auto">
             جميع المنتجات المتوفرة لدينا أصلية 100% ومستوردة من الوكلاء
             الرسميين.

@@ -250,11 +250,6 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                 <span className="bg-[#5F6F52]/10 text-[#5F6F52] px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-[#5F6F52]/20">
                   {product.brands?.name || "Premium Collection"}
                 </span>
-                {product.is_available && (
-                  <span className="flex items-center gap-1 text-[#5F6F52] text-[10px] font-bold">
-                    <ShieldCheck size={14} /> أصلي 100%
-                  </span>
-                )}
               </div>
 
               <h1 className="text-3xl md:text-5xl font-black text-[#2D3436] leading-tight tracking-tight">
@@ -438,7 +433,7 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
           {product.usage_instructions?.length > 0 && (
             <div className="bg-white p-12 rounded-[3.5rem] border border-[#C3CBB9]/20 shadow-sm">
               <h3 className="text-3xl font-black text-[#2D3436] mb-12 text-center italic">
-                طقوس الاستخدام المثالية
+                خطوات الاستخدام المثالية
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {product.usage_instructions.map((step, i) => (
@@ -513,7 +508,7 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                     The Smart Choice
                   </div>
                   <h3 className="text-4xl font-black text-[#2D3436] text-center">
-                    لماذا قد تفضلين هذا البديل؟
+                    لماذا قد تفضل هذا البديل؟
                   </h3>
                 </div>
 
@@ -577,8 +572,8 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
           {/* فيديو اليوتيوب */}
           {videoId && (
             <div className="pt-24 text-center">
-              <h3 className="text-4xl font-black mb-12 text-[#2D3436] tracking-tight italic underline decoration-[#5F6F52] decoration-4 underline-offset-8">
-                سر الجمال في خطوات..
+              <h3 className="text-4xl font-black mb-12 text-[#2D3436] tracking-tight underline decoration-[#5F6F52] decoration-4 underline-offset-8">
+                شرح المنتج بالفيديو
               </h3>
               <div className="max-w-5xl mx-auto aspect-video rounded-[4rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(45,52,54,0.3)] bg-black ring-[1px] ring-white/10 relative group">
                 <iframe
@@ -596,7 +591,7 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
             <div className="pt-32">
               <div className="flex items-center justify-between mb-12">
                 <h3 className="text-4xl font-black text-[#2D3436]">
-                  قد تعشقين أيضاً..
+                  قد يعجبك أيضاً..
                 </h3>
                 <Link
                   href="/all-products"

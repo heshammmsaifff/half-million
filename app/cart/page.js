@@ -1,8 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
+import { supabase } from "@/lib/supabaseClient"; // تأكد من صحة مسار ملف سوبابيس لديك
 import {
   Trash2,
   Plus,
@@ -11,10 +13,48 @@ import {
   ArrowRight,
   CreditCard,
   Heart,
+  AlertCircle,
+  X,
+  MessageCircle,
+  Phone,
 } from "lucide-react";
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, getCartTotal } = useCart();
+  const router = useRouter();
+
+  // States
+  const [showLoginAlert, setShowLoginAlert] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // التأكد من حالة تسجيل الدخول عند تحميل الصفحة
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setIsLoggedIn(!!user);
+      } catch (error) {
+        console.error("Error checking auth:", error);
+      } finally {
+        setCheckingAuth(false);
+      }
+    };
+    checkUser();
+  }, []);
+
+  // دالة التعامل مع الضغط على زر إتمام الشراء
+  const handleCheckoutClick = () => {
+    if (isLoggedIn) {
+      // إذا كان مسجلاً، اذهب مباشرة لصفحة الدفع
+      router.push("/checkout");
+    } else {
+      // إذا لم يكن مسجلاً، اظهر التنبيه
+      setShowLoginAlert(true);
+    }
+  };
 
   if (cart.length === 0) {
     return (
@@ -32,19 +72,17 @@ export default function CartPage() {
           />
         </div>
         <div className="space-y-3">
-          <h2 className="text-3xl font-black text-[#2D3436]">
-            سلتكِ بانتظار جمالكِ
-          </h2>
-          <p className="text-[#5F6F52] font-medium max-w-sm mx-auto opacity-70">
-            يبدو أنكِ لم تختارِ أي منتجات بعد. استكشفي مجموعتنا المختارة وابدأي
-            رحلة العناية اليوم.
+          <h2 className="text-3xl font-black text-[#2D3436]">السلة فارغة</h2>
+          <p className="text-black font-medium max-w-sm mx-auto opacity-70">
+            يبدو أنك لم تختر أي منتجات بعد. استكشف مجموعتنا المختارة وابدأ رحلة
+            العناية اليوم.
           </p>
         </div>
         <Link
           href="/all-products"
           className="bg-[#2D3436] text-white px-12 py-5 rounded-[2rem] font-black hover:bg-[#5F6F52] transition-all shadow-xl shadow-[#2D3436]/10 flex items-center gap-3"
         >
-          اكتشفي المنتجات الآن
+          اكتشف المنتجات الآن
           <ArrowRight size={20} className="rotate-180" />
         </Link>
       </div>
@@ -53,6 +91,63 @@ export default function CartPage() {
 
   return (
     <div className="max-w-[1400px] mx-auto px-6 py-12 md:py-20" dir="rtl">
+      {/* نافذة التحذير (Modal) - تظهر فقط لغير المسجلين */}
+      {showLoginAlert && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowLoginAlert(false)}
+          ></div>
+          <div className="relative bg-white w-full max-w-lg rounded-[3rem] p-8 md:p-12 shadow-2xl animate-in fade-in zoom-in duration-300">
+            <button
+              onClick={() => setShowLoginAlert(false)}
+              className="absolute top-6 left-6 text-gray-400 hover:text-black transition-colors"
+            >
+              <X size={24} />
+            </button>
+
+            <div className="text-center space-y-6">
+              <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto">
+                <AlertCircle size={40} className="text-amber-500" />
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="text-2xl font-black text-[#2D3436]">
+                  تنبيه قبل الاستمرار
+                </h3>
+                <p className="text-[#5F6F52] leading-relaxed">
+                  أنت غير مسجل دخول حالياً. عند إتمام الشراء كـ "ضيف"، لن تتمكن
+                  من متابعة حالة الطلب عبر الموقع، يمكنك المتابعة عبر:
+                </p>
+                <div className="flex flex-wrap justify-center gap-4 text-sm font-bold pt-2">
+                  <span className="flex items-center gap-1 text-[#5F6F52] opacity-70">
+                    <MessageCircle size={14} /> واتساب
+                  </span>
+                  <span className="flex items-center gap-1 text-[#5F6F52] opacity-70">
+                    <Phone size={14} /> الخط الساخن
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 pt-4">
+                <Link
+                  href="/login"
+                  className="bg-[#2D3436] text-white py-4 rounded-2xl font-black hover:bg-[#5F6F52] transition-all text-center"
+                >
+                  تسجيل الدخول / إنشاء حساب
+                </Link>
+                <Link
+                  href="/checkout"
+                  className="border-2 border-[#2D3436] text-[#2D3436] py-4 rounded-2xl font-black hover:bg-gray-50 transition-all text-center"
+                >
+                  متابعة الشراء كـ "ضيف"
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
         <div>
           <h1 className="text-4xl md:text-5xl font-black text-[#2D3436] mb-3">
@@ -83,9 +178,6 @@ export default function CartPage() {
 
               {/* تفاصيل المنتج */}
               <div className="flex-1 text-center sm:text-right space-y-2">
-                <span className="text-[10px] font-black text-[#5F6F52] uppercase tracking-[0.2em] opacity-60">
-                  منتج أصلي
-                </span>
                 <h3 className="text-xl font-black text-[#2D3436] group-hover:text-[#5F6F52] transition-colors">
                   {item.name}
                 </h3>
@@ -171,12 +263,15 @@ export default function CartPage() {
               </div>
             </div>
 
-            <Link
-              href="/checkout"
-              className="w-full bg-[#5F6F52] text-white py-6 rounded-2xl font-black text-xl flex items-center justify-center gap-3 hover:bg-white hover:text-[#2D3436] transition-all shadow-xl shadow-black/20"
+            {/* تم تحديث الزر لاستدعاء وظيفة التحقق */}
+            <button
+              onClick={handleCheckoutClick}
+              disabled={checkingAuth}
+              className="w-full bg-[#5F6F52] text-white py-6 rounded-2xl font-black text-xl flex items-center justify-center gap-3 hover:bg-white hover:text-[#2D3436] transition-all shadow-xl shadow-black/20 disabled:opacity-50"
             >
-              <CreditCard size={22} /> إتمام الشراء الآن
-            </Link>
+              <CreditCard size={22} />
+              {checkingAuth ? "جاري التحقق..." : "إتمام الشراء الآن"}
+            </button>
 
             <div className="mt-8 flex items-center justify-center gap-4 opacity-40">
               <div className="w-10 h-6 bg-white/10 rounded-md"></div>

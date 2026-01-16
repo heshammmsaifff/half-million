@@ -92,8 +92,8 @@ export default function OffersPage() {
             عروض <span className="text-[#E29595]">الجمال</span> الحصرية
           </h1>
           <p className="text-gray-300 text-lg font-medium leading-relaxed">
-            دللي نفسك مع خصومات تصل إلى 50% على تشكيلة مختارة من أرقى منتجات
-            العناية والتجميل.
+            خصومات تصل إلى 50% على تشكيلة مختارة من أرقى منتجات العناية
+            والتجميل.
           </p>
         </div>
 

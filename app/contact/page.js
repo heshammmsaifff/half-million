@@ -64,7 +64,7 @@ export default function ContactUs() {
           <span className="text-white/70 uppercase tracking-[0.3em] text-sm font-bold">
             نحن هنا لمساعدتك
           </span>
-          <h1 className="text-5xl md:text-8xl font-black text-white italic tracking-tighter">
+          <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter">
             تواصل معنا
           </h1>
         </div>
@@ -99,7 +99,7 @@ export default function ContactUs() {
           ))}
         </div>
 
-        <div className="mt-24 grid grid-cols-1 lg:grid-cols-2 gap-20">
+        <div className="mt-24 flex justify-center text-center">
           {/* Social & Info Section */}
           <div className="flex flex-col justify-center space-y-12">
             <div className="space-y-6">
@@ -114,7 +114,7 @@ export default function ContactUs() {
             </div>
 
             <div className="space-y-6">
-              <div className="flex items-center gap-5">
+              <div className="flex items-center justify-center gap-5">
                 <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
                   <MapPin size={20} />
                 </div>
@@ -127,7 +127,7 @@ export default function ContactUs() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-5">
+              <div className="flex items-center justify-center gap-5">
                 <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
                   <Clock size={20} />
                 </div>
@@ -140,7 +140,7 @@ export default function ContactUs() {
               </div>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex justify-center gap-5">
               <Link
                 href="#"
                 className="w-12 h-12 rounded-xl bg-black text-white flex items-center justify-center hover:bg-pink-600 transition-colors"

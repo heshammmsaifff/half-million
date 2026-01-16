@@ -82,7 +82,7 @@ export default function OfferDetailsPage({ params: paramsPromise }) {
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
         <Loader2 className="animate-spin text-[#5F6F52]" size={40} />
         <span className="font-black text-[#5F6F52] animate-pulse">
-          نحضر لكِ تفاصيل الجمال...
+          جاري التحميل ...
         </span>
       </div>
     );
@@ -209,7 +209,7 @@ export default function OfferDetailsPage({ params: paramsPromise }) {
             ) : (
               <>
                 <Plus size={24} className="bg-[#E29595] rounded-full p-0.5" />
-                أضيفي لجمالكِ الآن
+                أضف للسلة الآن
               </>
             )}
           </button>

@@ -39,7 +39,7 @@ body {
 }
 
 /* التدرج الجانبي */
-.brands-marquee-container::before,
+/* .brands-marquee-container::before,
 .brands-marquee-container::after {
   content: "";
   position: absolute;
@@ -48,7 +48,7 @@ body {
   height: 100%;
   z-index: 2;
   pointer-events: none;
-}
+} */
 
 .brands-marquee-container::before {
   left: 0;

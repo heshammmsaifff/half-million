@@ -1,18 +1,58 @@
 "use client";
-import React from "react";
-import { X, ShoppingBag, Plus, Minus, Trash2, ArrowLeft } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import {
+  X,
+  ShoppingBag,
+  Plus,
+  Minus,
+  Trash2,
+  ArrowLeft,
+  AlertCircle,
+  MessageCircle,
+  Phone,
+} from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function CartSidebar({ isOpen, onClose }) {
   const { cart, removeFromCart, updateQuantity, getCartTotal } = useCart();
+  const router = useRouter();
+
+  // States للتحقق من الدخول والتحذير
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLoginAlert, setShowLoginAlert] = useState(false);
+
+  // التحقق من الجلسة عند فتح القائمة الجانبية
+  useEffect(() => {
+    if (isOpen) {
+      const checkUser = async () => {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setIsLoggedIn(!!user);
+      };
+      checkUser();
+    }
+  }, [isOpen]);
+
+  // وظيفة معالجة الضغط على إتمام الشراء
+  const handleCheckoutClick = (e) => {
+    if (!isLoggedIn) {
+      e.preventDefault(); // منع الانتقال لصفحة الدفع
+      setShowLoginAlert(true);
+    } else {
+      onClose(); // إغلاق القائمة الجانبية قبل الانتقال
+    }
+  };
 
   return (
     <div
       className={`fixed inset-0 z-[110] ${isOpen ? "visible" : "invisible"}`}
       dir="rtl"
     >
-      {/* Overlay الخلفية بلمسة ضبابية ناعمة */}
+      {/* Overlay الخلفية */}
       <div
         className={`absolute inset-0 bg-[#1A1C17]/60 backdrop-blur-md transition-opacity duration-500 ${
           isOpen ? "opacity-100" : "opacity-0"
@@ -20,13 +60,58 @@ export default function CartSidebar({ isOpen, onClose }) {
         onClick={onClose}
       />
 
-      {/* Sidebar محتوى السلة بتصميم فخم */}
+      {/* نافذة التحذير (تظهر فوق السايدبار) */}
+      {showLoginAlert && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowLoginAlert(false)}
+          ></div>
+          <div className="relative bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl animate-in fade-in zoom-in duration-300 text-center">
+            <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle size={32} className="text-amber-500" />
+            </div>
+            <h3 className="text-xl font-black text-[#2D3436] mb-2">
+              تنبيه قبل الاستمرار
+            </h3>
+            <p className="text-sm text-[#5F6F52] leading-relaxed mb-6 font-medium">
+              أنت غير مسجل دخول حالياً. عند إتمام الشراء كـ "ضيف"، لن تتمكني من
+              متابعة حالة الطلب عبر الموقع، يمكنك متابعة الطلب عن طريق الواتساب
+              أو الخط الساخن فقط
+            </p>
+            <div className="grid grid-cols-1 gap-3">
+              <Link
+                href="/login"
+                onClick={() => {
+                  setShowLoginAlert(false);
+                  onClose();
+                }}
+                className="bg-[#2D3436] text-white py-4 rounded-xl font-black text-sm hover:bg-[#5F6F52] transition-all"
+              >
+                تسجيل الدخول / إنشاء حساب
+              </Link>
+              <Link
+                href="/checkout"
+                onClick={() => {
+                  setShowLoginAlert(false);
+                  onClose();
+                }}
+                className="border-2 border-[#2D3436] text-[#2D3436] py-4 rounded-xl font-black text-sm hover:bg-gray-50 transition-all"
+              >
+                متابعة الشراء كـ "ضيف"
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sidebar محتوى السلة */}
       <div
         className={`absolute top-0 left-0 h-full w-full max-w-md bg-white shadow-[-20px_0_50px_rgba(0,0,0,0.1)] transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) transform ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } flex flex-col`}
       >
-        {/* Header الرأس - الهوية الخضراء */}
+        {/* Header */}
         <div className="p-6 border-b border-[#C3CBB9]/20 flex items-center justify-between bg-[#F8F9F4]/50">
           <div className="flex items-center gap-4">
             <div className="bg-[#5F6F52] text-white p-3 rounded-2xl shadow-lg shadow-[#5F6F52]/20">
@@ -49,7 +134,7 @@ export default function CartSidebar({ isOpen, onClose }) {
           </button>
         </div>
 
-        {/* Cart Items قائمة المنتجات */}
+        {/* Cart Items */}
         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-6">
           {cart && cart.length > 0 ? (
             <div className="space-y-6">
@@ -123,20 +208,16 @@ export default function CartSidebar({ isOpen, onClose }) {
                 <ShoppingBag size={40} strokeWidth={1} />
                 <div className="absolute top-0 right-0 w-6 h-6 bg-[#E29595] rounded-full border-4 border-white animate-ping" />
               </div>
-              <div>
-                <h3 className="font-black text-[#2D3436] text-lg">
-                  حقيبتك فارغة
-                </h3>
-                <p className="text-xs text-gray-400 mt-2 font-bold leading-relaxed">
-                  يبدو أنكِ لم تختاري أي منتجات بعد.
-                  <br />
-                  اكتشفي أحدث عروضنا الجمالية الآن.
-                </p>
-              </div>
+              <h3 className="font-black text-[#2D3436] text-lg">
+                حقيبتك فارغة
+              </h3>
+              <p className="text-xs text-gray-400 mt-2 font-bold leading-relaxed">
+                يبدو أنك لم تختر أي منتجات بعد.
+              </p>
               <Link
                 href="/all-products"
                 onClick={onClose}
-                className="mt-8 inline-block bg-[#5F6F52] text-white px-10 py-4 rounded-2xl text-[13px] font-black hover:bg-[#2D3436] transition-all duration-300 shadow-lg shadow-[#5F6F52]/20"
+                className="mt-8 inline-block bg-[#5F6F52] text-white px-10 py-4 rounded-2xl text-[13px] font-black hover:bg-[#2D3436] shadow-lg"
               >
                 تصفح المنتجات
               </Link>
@@ -144,28 +225,21 @@ export default function CartSidebar({ isOpen, onClose }) {
           )}
         </div>
 
-        {/* Footer المجموع والطلب - التصميم الفاخر */}
+        {/* Footer */}
         {cart && cart.length > 0 && (
           <div className="p-8 border-t border-[#C3CBB9]/20 bg-[#F8F9F4]/30 space-y-5">
             <div className="space-y-3">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-500 font-bold">المجموع الفرعي:</span>
-                <span className="text-gray-700 font-black tracking-tight">
+                <span className="text-gray-700 font-black">
                   {getCartTotal().toLocaleString()} ج.م
                 </span>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500 font-bold">الشحن:</span>
-                <span className="text-[#5F6F52] font-black">
-                  يُحسب عند الدفع
-                </span>
-              </div>
-              <div className="h-px bg-[#C3CBB9]/20 my-2" />
               <div className="flex items-center justify-between">
                 <span className="text-[#2D3436] font-black text-lg">
                   الإجمالي
                 </span>
-                <span className="text-2xl font-black text-[#5F6F52] tracking-tighter">
+                <span className="text-2xl font-black text-[#5F6F52]">
                   {getCartTotal().toLocaleString()}{" "}
                   <span className="text-xs">ج.م</span>
                 </span>
@@ -174,8 +248,8 @@ export default function CartSidebar({ isOpen, onClose }) {
 
             <Link
               href="/checkout"
-              onClick={onClose}
-              className="w-full bg-[#5F6F52] text-white py-5 rounded-[1.5rem] font-black text-[15px] flex items-center justify-center gap-3 hover:bg-[#2D3436] transition-all duration-500 shadow-xl shadow-[#5F6F52]/20 group"
+              onClick={handleCheckoutClick}
+              className="w-full bg-[#5F6F52] text-white py-5 rounded-[1.5rem] font-black text-[15px] flex items-center justify-center gap-3 hover:bg-[#2D3436] transition-all duration-500 shadow-xl group"
             >
               إتمام عملية الشراء
               <ArrowLeft

@@ -164,7 +164,7 @@ export default function LatestOffers() {
                   ) : (
                     <>
                       <Plus size={20} />
-                      أضف للعرض
+                      أضف للسلة
                     </>
                   )}
                 </button>

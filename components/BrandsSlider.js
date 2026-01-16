@@ -33,7 +33,7 @@ export default function BrandsMarquee() {
               src={brand.image_url}
               alt={brand.name}
               /* Added grayscale filter to unify logos, turns to full color on hover */
-              className="brand-img rounded-2xl grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-500 ease-in-out"
+              className="brand-img rounded-2xl opacity-70 hover:grayscale hover:opacity-100 transition-all duration-500 ease-in-out"
               loading="lazy"
             />
           </Link>

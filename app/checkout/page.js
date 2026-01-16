@@ -58,21 +58,14 @@ export default function CheckoutPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) {
-        Swal.fire({
-          icon: "warning",
-          title: "تسجيل الدخول مطلوب",
-          text: "يرجى تسجيل الدخول أولاً لإتمام عملية الشراء لضمان حفظ حقوقك ومتابعة طلبك.",
-          confirmButtonText: "تسجيل الدخول",
-          confirmButtonColor: "#2D3436",
-        }).then(() => router.push("/login"));
-      } else {
+      // حذفنا Swal و router.push
+      if (user) {
         setCurrentUser(user);
-        setIsClient(true);
       }
+      setIsClient(true); // نجعل الصفحة تفتح في كل الأحوال
     };
     checkUser();
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     if (isMandatoryOnline) {
@@ -155,7 +148,7 @@ export default function CheckoutPage() {
         address: formData.address,
         total_price: totalAmount,
         items: cart,
-        user_id: currentUser.id,
+        user_id: currentUser ? currentUser.id : null,
         payment_method: formData.paymentMethod,
         proof_image_url: receiptUrl,
         status: "جاري المراجعة",
@@ -176,19 +169,19 @@ export default function CheckoutPage() {
     }
   };
 
-  if (!isClient || !currentUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F8F9F4]">
-        <div className="text-center">
-          <Loader2
-            className="animate-spin text-[#5F6F52] mx-auto mb-4"
-            size={40}
-          />
-          <p className="text-[#5F6F52] font-bold">جاري التحقق من الحساب...</p>
-        </div>
-      </div>
-    );
-  }
+  // if (!isClient || !currentUser) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-[#F8F9F4]">
+  //       <div className="text-center">
+  //         <Loader2
+  //           className="animate-spin text-[#5F6F52] mx-auto mb-4"
+  //           size={40}
+  //         />
+  //         <p className="text-[#5F6F52] font-bold">جاري التحقق من الحساب...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   if (orderCompleted) {
     return (
