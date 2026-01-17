@@ -2,19 +2,41 @@ import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 
+// --- التعديل الجوهري هنا ---
+// هذا السطر يخبر Next.js بإعادة جلب البيانات عند كل زيارة للصفحة
+// لضمان ظهور البراندات الجديدة واختفاء المحذوفة فوراً
+export const revalidate = 0;
+
 export default async function AllBrandsPage() {
-  // جلب جميع البراندات من الجدول
+  // جلب البيانات مع إضافة ترتيب لضمان عدم حدوث تضارب في الكاش
   const { data: brands, error } = await supabase
     .from("brands")
     .select("*")
     .order("name", { ascending: true });
 
-  if (error)
+  if (error) {
+    console.error("Supabase Error:", error);
     return (
       <div className="min-h-[50vh] flex items-center justify-center text-[#2D3436] font-bold">
         عذراً، حدث خطأ أثناء تحميل الماركات.
       </div>
     );
+  }
+
+  // إذا كان الجدول فارغاً تماماً بعد الـ Truncate
+  if (!brands || brands.length === 0) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-6">
+        <Sparkles size={40} className="text-[#C3CBB9] mb-4" />
+        <h2 className="text-2xl font-black text-[#2D3436]">
+          لا توجد ماركات حالياً
+        </h2>
+        <p className="text-[#5F6F52] mt-2">
+          سيتم إضافة الماركات العالمية قريباً.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-[1400px] mx-auto p-6 md:p-16 text-right" dir="rtl">
@@ -36,7 +58,7 @@ export default async function AllBrandsPage() {
 
       {/* Brands Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
-        {brands?.map((brand) => (
+        {brands.map((brand) => (
           <Link
             key={brand.id}
             href={`/brand/${brand.id}`}
@@ -55,7 +77,7 @@ export default async function AllBrandsPage() {
               ) : (
                 <div className="w-20 h-20 bg-[#F8F9F4] rounded-full flex items-center justify-center">
                   <span className="text-3xl font-black text-[#C3CBB9]">
-                    {brand.name[0]}
+                    {brand.name ? brand.name[0] : "?"}
                   </span>
                 </div>
               )}
@@ -94,7 +116,6 @@ export default async function AllBrandsPage() {
             <ArrowRight size={18} className="rotate-180" />
           </Link>
         </div>
-        {/* عنصر جمالي خلفي */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
       </div>
     </div>
