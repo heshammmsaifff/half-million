@@ -62,6 +62,7 @@ export default async function AllBrandsPage() {
           <Link
             key={brand.id}
             href={`/brand/${brand.id}`}
+            prefetch={false}
             className="group relative flex flex-col items-center"
           >
             {/* الدائرة الخلفية التأثيرية */}
