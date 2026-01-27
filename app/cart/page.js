@@ -91,7 +91,6 @@ export default function CartPage() {
 
   return (
     <div className="max-w-[1400px] mx-auto px-6 py-12 md:py-20" dir="rtl">
-      {/* نافذة التحذير (Modal) - تظهر فقط لغير المسجلين */}
       {showLoginAlert && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div

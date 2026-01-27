@@ -7,7 +7,6 @@ import {
   Twitter,
   Mail,
   Phone,
-  MapPin,
   ArrowUpRight,
   X,
   Heart,
@@ -17,6 +16,15 @@ import Link from "next/link";
 const Footer = () => {
   const currentYear = new Date().getFullYear();
   const [modalContent, setModalContent] = useState(null);
+
+  // بيانات التواصل - يمكنك تغيير الروابط هنا بسهولة
+  const contactLinks = {
+    phone: "01000000000",
+    email: "info@halfmillion1.com",
+    instagram: "https://instagram.com/your-profile",
+    facebook: "https://facebook.com/your-page",
+    twitter: "https://twitter.com/your-account",
+  };
 
   const policies = {
     terms: {
@@ -55,7 +63,6 @@ const Footer = () => {
       className="relative bg-[#1A1C17] text-white pt-24 pb-12 overflow-hidden"
       dir="rtl"
     >
-      {/* Decorative Element */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-[#C3CBB9]/30 to-transparent" />
 
       <div className="max-w-7xl mx-auto px-6">
@@ -94,22 +101,24 @@ const Footer = () => {
               التسوق
             </h4>
             <ul className="space-y-4 font-bold">
-              {["المتجر", "العروض الحصرية", "العلامات التجارية"].map(
-                (item, i) => (
-                  <li key={i}>
-                    <Link
-                      href="#"
-                      className="text-gray-300 hover:text-white transition-colors flex items-center gap-2 group"
-                    >
-                      {item}{" "}
-                      <ArrowUpRight
-                        size={14}
-                        className="opacity-0 group-hover:opacity-100 transition-all -translate-y-1"
-                      />
-                    </Link>
-                  </li>
-                )
-              )}
+              {[
+                { name: "المتجر", slug: "/all-products" },
+                { name: "العروض الحصرية", slug: "/offers" },
+                { name: "العلامات التجارية", slug: "/all-brands" },
+              ].map((link, i) => (
+                <li key={i}>
+                  <Link
+                    href={link.slug}
+                    className="text-gray-300 hover:text-white transition-colors flex items-center gap-2 group"
+                  >
+                    {link.name}
+                    <ArrowUpRight
+                      size={14}
+                      className="opacity-0 group-hover:opacity-100 transition-all -translate-y-1"
+                    />
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -119,43 +128,70 @@ const Footer = () => {
               تواصل معنا
             </h4>
             <ul className="space-y-5 text-gray-300 font-medium">
-              <li className="flex items-center gap-4 group cursor-pointer">
-                <div className="p-3 rounded-xl bg-white/5 group-hover:bg-[#C3CBB9]/20 transition-colors">
-                  <Phone size={18} className="text-[#C3CBB9]" />
-                </div>
-                <span
-                  dir="ltr"
-                  className="group-hover:text-white transition-colors"
+              {/* Phone Link */}
+              <li>
+                <a
+                  href={`tel:${contactLinks.phone}`}
+                  className="flex items-center gap-4 group cursor-pointer"
                 >
-                  0100-000-0000
-                </span>
+                  <div className="p-3 rounded-xl bg-white/5 group-hover:bg-[#C3CBB9]/20 transition-colors">
+                    <Phone size={18} className="text-[#C3CBB9]" />
+                  </div>
+                  <span
+                    dir="ltr"
+                    className="group-hover:text-white transition-colors"
+                  >
+                    {contactLinks.phone}
+                  </span>
+                </a>
               </li>
-              <li className="flex items-center gap-4 group cursor-pointer">
-                <div className="p-3 rounded-xl bg-white/5 group-hover:bg-[#C3CBB9]/20 transition-colors">
-                  <Mail size={18} className="text-[#C3CBB9]" />
-                </div>
-                <span className="group-hover:text-white transition-colors">
-                  hello@halfmillion.com
-                </span>
+              {/* Email Link */}
+              <li>
+                <a
+                  href={`mailto:${contactLinks.email}`}
+                  className="flex items-center gap-4 group cursor-pointer"
+                >
+                  <div className="p-3 rounded-xl bg-white/5 group-hover:bg-[#C3CBB9]/20 transition-colors">
+                    <Mail size={18} className="text-[#C3CBB9]" />
+                  </div>
+                  <span className="group-hover:text-white transition-colors">
+                    {contactLinks.email}
+                  </span>
+                </a>
               </li>
             </ul>
           </div>
 
-          {/* Social Media */}
+          {/* Social Media - Individual Links */}
           <div className="lg:col-span-2 space-y-6">
             <h4 className="text-xs font-black uppercase tracking-[0.2em] text-[#C3CBB9]">
               تابعونا
             </h4>
             <div className="flex gap-3">
-              {[Instagram, Facebook, Twitter].map((Icon, idx) => (
-                <a
-                  key={idx}
-                  href="#"
-                  className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center hover:bg-[#C3CBB9] hover:text-[#1A1C17] transition-all duration-500"
-                >
-                  <Icon size={20} />
-                </a>
-              ))}
+              <a
+                href={contactLinks.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center hover:bg-[#C3CBB9] hover:text-[#1A1C17] transition-all duration-500"
+              >
+                <Instagram size={20} />
+              </a>
+              <a
+                href={contactLinks.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center hover:bg-[#C3CBB9] hover:text-[#1A1C17] transition-all duration-500"
+              >
+                <Facebook size={20} />
+              </a>
+              <a
+                href={contactLinks.twitter}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center hover:bg-[#C3CBB9] hover:text-[#1A1C17] transition-all duration-500"
+              >
+                <Twitter size={20} />
+              </a>
             </div>
           </div>
         </div>
@@ -183,7 +219,7 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Modern Modal */}
+      {/* Modern Modal Component */}
       {modalContent && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
           <div

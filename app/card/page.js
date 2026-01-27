@@ -7,7 +7,6 @@ import { FaWhatsapp } from "react-icons/fa6";
 const MobileFullCard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // استبدل هذا الرابط بموقعك الفعلي على خرائط جوجل
   const googleMapsUrl =
     "https://www.google.com/maps/place/30%C2%B043'33.8%22N+31%C2%B047'18.2%22E/@30.7260492,31.7858226,600m/data=!3m2!1e3!4b1!4m4!3m3!8m2!3d30.7260492!4d31.7883975?hl=en&entry=ttu&g_ep=EgoyMDI1MTIwOS4wIKXMDSoKLDEwMDc5MjA3MUgBUAM%3D";
 
@@ -18,7 +17,6 @@ const MobileFullCard = () => {
     >
       {/* منطقة الصور */}
       <div className="relative flex-grow w-full overflow-hidden bg-black">
-        {/* النصف الأول: Skincare (المثلث العلوي الأيسر) */}
         <div
           className="absolute inset-0 z-0"
           style={{ clipPath: "polygon(0 0, 100% 0, 0 100%)" }}
@@ -27,14 +25,10 @@ const MobileFullCard = () => {
             src="/skincare.jpg"
             alt="Skincare"
             className="w-full h-full object-cover scale-125"
-            /* السر هنا: تحريك الصورة لليمين وللأسفل قليلاً 
-               لتظهر في منتصف المثلث العلوي المتاح 
-            */
             style={{ objectPosition: "60% 30%" }}
           />
         </div>
 
-        {/* النصف الثاني: Vitamin (المثلث السفلي الأيمن) */}
         <div
           className="absolute inset-0 z-0"
           style={{ clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }}
@@ -43,14 +37,10 @@ const MobileFullCard = () => {
             src="/vitamin.jpg"
             alt="Vitamin"
             className="w-full h-full object-cover scale-125"
-            /* تحريك الصورة لليسار وللأعلى لتظهر في 
-               منتصف المثلث السفلي المتاح 
-            */
             style={{ objectPosition: "40% 70%" }}
           />
         </div>
 
-        {/* الخط الفاصل SVG */}
         <svg
           className="absolute inset-0 w-full h-full z-10 pointer-events-none"
           preserveAspectRatio="none"
@@ -75,7 +65,6 @@ const MobileFullCard = () => {
         </div>
       </div>
 
-      {/* شريط الأيقونات السفلي */}
       <div className="h-28 bg-white flex justify-around items-center px-4 z-30 border-t border-gray-100 shadow-up">
         <a
           href="https://halfmillion1.com"
@@ -88,7 +77,6 @@ const MobileFullCard = () => {
           <span className="text-xs font-bold">الموقع</span>
         </a>
 
-        {/* الآن عند الضغط يفتح اللوكيشن */}
         <a
           href={googleMapsUrl}
           target="_blank"
@@ -111,7 +99,6 @@ const MobileFullCard = () => {
         </button>
       </div>
 
-      {/* المودال */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end justify-center">
           <div className="bg-white w-full rounded-t-[40px] p-8 animate-in slide-in-from-bottom duration-300 shadow-2xl">
@@ -124,19 +111,19 @@ const MobileFullCard = () => {
             </div>
             <div className="space-y-4 mb-6">
               <a
-                href="tel:+201092141964"
+                href="tel:+201000000000"
                 className="flex justify-between items-center p-4 bg-gray-50 rounded-2xl font-mono text-lg text-emerald-700 active:bg-emerald-50 transition-colors"
               >
-                <span dir="ltr">01092141964</span>
+                <span dir="ltr">01000000000</span>
                 <Phone size={18} />
               </a>
               <a
-                href="https://wa.me/201092141964"
+                href="https://wa.me/201000000000"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex justify-between items-center p-4 bg-emerald-50/50 rounded-2xl font-mono text-lg text-emerald-700 active:bg-emerald-100 transition-colors"
               >
-                <span dir="ltr">01092141964</span>
+                <span dir="ltr">01000000000</span>
                 <FaWhatsapp size={20} className="text-green-600" />
               </a>
             </div>
