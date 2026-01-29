@@ -166,7 +166,7 @@ const MobileFullCard = () => {
         </a>
 
         <a
-          href="#"
+          href="https://www.google.com/maps/place/30%C2%B043'33.8%22N+31%C2%B047'18.2%22E/@30.7260492,31.7858226,600m/data=!3m2!1e3!4b1!4m4!3m3!8m2!3d30.7260492!4d31.7883975?hl=en&entry=ttu&g_ep=EgoyMDI1MTIwOS4wIKXMDSoKLDEwMDc5MjA3MUgBUAM%3D"
           target="_blank"
           className="flex flex-col items-center gap-2 relative"
         >
