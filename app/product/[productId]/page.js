@@ -52,7 +52,7 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
       base_price,
       product_images (image_url, is_main)
     )
-  `
+  `,
           )
           .eq("id", Number(productId))
           .single();
@@ -131,7 +131,7 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
       : Math.round((discountValue / basePrice) * 100);
 
   const images = [...(product.product_images || [])].sort(
-    (a, b) => (b.is_main ? 1 : 0) - (a.is_main ? 1 : 0)
+    (a, b) => (b.is_main ? 1 : 0) - (a.is_main ? 1 : 0),
   );
 
   const handleAddToCart = async () => {
@@ -156,7 +156,7 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
   };
 
   const videoId = product.youtube_link?.match(
-    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&]{11})/
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&]{11})/,
   )?.[1];
 
   return (
@@ -262,35 +262,32 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1 bg-white p-4 rounded-2xl border border-[#C3CBB9]/20">
-                <span className="text-gray-400 text-[10px] font-black flex items-center gap-1 uppercase">
+              {/* رابط القسم */}
+              <Link
+                href={`/category/${product.sub_categories?.category_id}/${product.sub_categories?.id}`}
+                className="flex flex-col gap-1 bg-white p-4 rounded-2xl border border-[#C3CBB9]/20 hover:border-[#5F6F52]/40 hover:shadow-sm transition-all group"
+              >
+                <span className="text-gray-400 text-[10px] font-black flex items-center gap-1 uppercase group-hover:text-[#5F6F52] transition-colors">
                   <Tag size={12} /> القسم
                 </span>
-                <span className="text-[#2D3436] font-bold text-sm">
+                <span className="text-[#2D3436] font-bold text-sm group-hover:text-[#5F6F52] transition-colors">
                   {product.sub_categories?.name}
                 </span>
-              </div>
-              <div className="flex flex-col gap-1 bg-white p-4 rounded-2xl border border-[#C3CBB9]/20">
-                <span className="text-gray-400 text-[10px] font-black flex items-center gap-1 uppercase">
+              </Link>
+
+              {/* رابط البراند */}
+              <Link
+                href={`/brand/${product.brand_id}`}
+                className="flex flex-col gap-1 bg-white p-4 rounded-2xl border border-[#C3CBB9]/20 hover:border-[#5F6F52]/40 hover:shadow-sm transition-all group"
+              >
+                <span className="text-gray-400 text-[10px] font-black flex items-center gap-1 uppercase group-hover:text-[#5F6F52] transition-colors">
                   <Award size={12} /> البراند
                 </span>
-                <span className="text-[#2D3436] font-bold text-sm">
+                <span className="text-[#2D3436] font-bold text-sm group-hover:text-[#5F6F52] transition-colors">
                   {product.brands?.name || "Half Million"}
                 </span>
-              </div>
+              </Link>
             </div>
-
-            {product.detailed_description && (
-              <div className="bg-white p-8 rounded-[2rem] border border-[#C3CBB9]/20 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-1 h-full bg-[#5F6F52]" />
-                <h4 className="font-black text-[#2D3436] mb-4 flex items-center gap-2">
-                  <Info size={20} className="text-[#5F6F52]" /> التفاصيل الكاملة
-                </h4>
-                <div className="text-gray-500 text-sm leading-relaxed whitespace-pre-line font-medium">
-                  {product.detailed_description}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* العمود الثالث: كارت الشراء (Price Card) */}
@@ -366,6 +363,24 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
           </div>
         </div>
 
+        {product.detailed_description && (
+          /* إضافة mx-auto لضمان التوسط و max-w-[80vw] أو w-[80%] حسب الحاوية الأب */
+          <div className="bg-white p-8 rounded-[2rem] border border-[#C3CBB9]/20 shadow-sm relative overflow-hidden w-full lg:w-[80vw] lg:max-w-[1200px] mx-auto mt-12">
+            {/* خط الديكور الجانبي */}
+            <div className="absolute top-0 right-0 w-1.5 h-full bg-[#5F6F52]" />
+
+            <h4 className="font-black text-[#2D3436] mb-6 flex items-center gap-3 text-lg">
+              <Info size={24} className="text-[#5F6F52]" />
+              التفاصيل الكاملة
+            </h4>
+
+            {/* تحسين عرض النص ليناسب المساحة الأكبر */}
+            <div className="text-gray-600 text-base leading-loose whitespace-pre-line font-medium max-w-4xl">
+              {product.detailed_description}
+            </div>
+          </div>
+        )}
+
         {/* أقسام المعلومات الإضافية (المكونات والنتائج) */}
         <div className="mt-24 space-y-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -379,7 +394,7 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                   <div className="p-3 bg-[#5F6F52]/10 rounded-2xl text-[#5F6F52]">
                     <FlaskConical size={32} />
                   </div>
-                  المكونات السرية
+                  المكونات
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
                   {product.ingredients.map((ing, i) => (
@@ -407,7 +422,7 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                   <div className="p-3 bg-white/10 rounded-2xl text-white">
                     <CheckCircle2 size={32} />
                   </div>
-                  النتائج المتوقعة
+                  فوائد {product.name}
                 </h3>
                 <div className="space-y-4 relative z-10">
                   {product.benefits.map((benefit, i) => (
@@ -552,7 +567,7 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                       <img
                         src={
                           comparisonProduct.product_images?.find(
-                            (img) => img.is_main
+                            (img) => img.is_main,
                           )?.image_url ||
                           comparisonProduct.product_images?.[0]?.image_url
                         }

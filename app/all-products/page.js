@@ -42,10 +42,11 @@ export default function AllProductsPage() {
       .select(
         `
         *,
+        is_available,
         brands (name),
         product_images (image_url, is_main),
         sub_categories (id, name, category_id)
-      `
+      `,
       )
       .order("created_at", { ascending: false });
 
@@ -73,7 +74,7 @@ export default function AllProductsPage() {
   const filteredSubCategories = useMemo(() => {
     if (selectedMainCat === "all") return [];
     return subCategories.filter(
-      (sub) => sub.category_id === parseInt(selectedMainCat)
+      (sub) => sub.category_id === parseInt(selectedMainCat),
     );
   }, [selectedMainCat, subCategories]);
 
@@ -258,53 +259,69 @@ export default function AllProductsPage() {
       </div>
 
       {/* شبكة المنتجات */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-10">
         {filteredProducts.map((product) => {
           const mainImg =
             product.product_images?.find((img) => img.is_main)?.image_url ||
             product.product_images?.[0]?.image_url;
+
           const discount = Number(product.discount_value || 0);
           const finalPrice =
             product.discount_type === "percentage"
               ? product.base_price * (1 - discount / 100)
               : product.base_price - discount;
+
           const isAdding = addingId === product.id;
+          // تعريف متغير التوفر
+          const isOutOfStock = product.is_available === false;
 
           return (
             <div
               key={product.id}
-              className="group bg-white rounded-[2.5rem] border border-[#C3CBB9]/20 overflow-hidden hover:shadow-[0_20px_50px_rgba(95,111,82,0.1)] transition-all duration-500 relative flex flex-col"
+              className="group bg-white rounded-[1.5rem] border border-[#C3CBB9]/20 overflow-hidden hover:shadow-[0_15px_35px_rgba(95,111,82,0.1)] transition-all duration-500 relative flex flex-col"
             >
               <Link href={`/product/${product.id}`} className="flex-1">
-                <div className="aspect-[4/5] relative overflow-hidden bg-[#F8F9F4]">
+                {/* تقليل الـ aspect ratio ليكون مربعاً أو قريباً منه لتوفير مساحة رأسية */}
+                <div className="aspect-square relative overflow-hidden bg-[#F8F9F4]">
                   <img
                     src={mainImg}
                     alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ${isOutOfStock ? "grayscale opacity-60" : ""}`}
                   />
-                  {discount > 0 && (
-                    <div className="absolute top-5 right-5 bg-[#E29595] text-white text-[11px] font-black px-4 py-1.5 rounded-full shadow-lg">
+
+                  {isOutOfStock && (
+                    <div className="absolute inset-0 bg-[#2D3436]/40 backdrop-blur-[2px] flex items-center justify-center z-20">
+                      <span className="bg-white text-[#2D3436] px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest shadow-xl">
+                        نفدت الكمية
+                      </span>
+                    </div>
+                  )}
+
+                  {discount > 0 && !isOutOfStock && (
+                    <div className="absolute top-3 right-3 bg-[#E29595] text-white text-[9px] font-black px-3 py-1 rounded-full shadow-lg z-10">
                       خصم {discount}
                       {product.discount_type === "percentage" ? "%" : " ج.م"}
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </div>
 
-                <div className="p-8 text-center pb-28">
-                  <span className="text-[10px] font-black text-[#5F6F52] uppercase tracking-[0.2em] mb-2 block opacity-60">
+                {/* تقليل الـ padding من p-8 لـ p-5 والـ pb من 28 لـ 20 */}
+                <div className="p-5 text-center pb-20">
+                  <span className="text-[9px] font-black text-[#5F6F52] uppercase tracking-[0.1em] mb-1 block opacity-60">
                     {product.brands?.name}
                   </span>
-                  <h3 className="text-lg font-black text-[#2D3436] mb-3 line-clamp-1 group-hover:text-[#5F6F52] transition-colors">
+                  <h3 className="text-base font-bold text-[#2D3436] mb-2 line-clamp-1 group-hover:text-[#5F6F52] transition-colors">
                     {product.name}
                   </h3>
-                  <div className="flex items-center justify-center gap-3">
-                    <span className="text-xl font-black text-[#2D3436]">
+                  <div className="flex items-center justify-center gap-2">
+                    <span
+                      className={`text-lg font-black ${isOutOfStock ? "text-gray-400" : "text-[#2D3436]"}`}
+                    >
                       {finalPrice.toLocaleString()}{" "}
-                      <small className="text-[10px] mr-1">ج.م</small>
+                      <small className="text-[9px] mr-0.5">ج.م</small>
                     </span>
                     {discount > 0 && (
-                      <span className="text-sm text-gray-400 line-through font-bold">
+                      <span className="text-xs text-gray-300 line-through font-bold">
                         {product.base_price.toLocaleString()}
                       </span>
                     )}
@@ -312,23 +329,28 @@ export default function AllProductsPage() {
                 </div>
               </Link>
 
-              <div className="absolute bottom-8 left-0 w-full px-8 translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
+              {/* تعديل مكان الزرار وحجمه */}
+              <div className="absolute bottom-4 left-0 w-full px-5">
                 <button
-                  disabled={isAdding}
+                  disabled={isAdding || isOutOfStock}
                   onClick={(e) =>
                     handleAddToCart(e, product, finalPrice, mainImg)
                   }
-                  className={`w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-3 transition-all ${
-                    isAdding
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-[#2D3436] text-white hover:bg-[#5F6F52] shadow-xl shadow-[#2D3436]/10 active:scale-95"
+                  className={`w-full py-3 rounded-xl font-black text-xs flex items-center justify-center gap-2 transition-all ${
+                    isOutOfStock
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none"
+                      : isAdding
+                        ? "bg-[#2D3436] text-white opacity-80"
+                        : "bg-[#2D3436] text-white hover:bg-[#5F6F52] shadow-lg shadow-[#2D3436]/10 active:scale-95"
                   }`}
                 >
                   {isAdding ? (
-                    <Loader2 size={18} className="animate-spin" />
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : isOutOfStock ? (
+                    "غير متوفر"
                   ) : (
                     <>
-                      <ShoppingCart size={18} /> أضف للسلة{" "}
+                      <ShoppingCart size={16} /> أضف للسلة
                     </>
                   )}
                 </button>

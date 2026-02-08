@@ -21,9 +21,9 @@ const Footer = () => {
   const contactLinks = {
     phone: "01000000000",
     email: "info@halfmillion1.com",
-    instagram: "https://instagram.com/your-profile",
-    facebook: "https://facebook.com/your-page",
-    twitter: "https://twitter.com/your-account",
+    instagram: "#",
+    facebook: "#",
+    twitter: "#",
   };
 
   const policies = {

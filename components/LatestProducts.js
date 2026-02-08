@@ -2,16 +2,14 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
-import { Plus, Loader2, ArrowLeft } from "lucide-react"; // استيراد الأيقونات
-import { useCart } from "@/context/CartContext"; // استيراد السلة
-import toast from "react-hot-toast"; // استيراد التنبيهات
+import { Plus, Loader2, ArrowLeft, Ban } from "lucide-react"; // استيراد أيقونة للمنع
+import { useCart } from "@/context/CartContext";
+import toast from "react-hot-toast";
 
 export default function LatestProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
-
-  // حالة لتتبع أي منتج يتم إضافته الآن
   const [addingId, setAddingId] = useState(null);
 
   useEffect(() => {
@@ -26,8 +24,9 @@ export default function LatestProducts() {
             base_price, 
             discount_value,
             discount_type,
+            is_available,
             product_images(image_url)
-          `
+          `,
           )
           .eq("product_images.is_main", true)
           .order("created_at", { ascending: false })
@@ -45,14 +44,17 @@ export default function LatestProducts() {
     fetchLatestProducts();
   }, []);
 
-  // دالة الإضافة للسلة مع تأثير التحميل والتنبيه
   const handleAddToCart = async (e, product, finalPrice, mainImage) => {
-    e.preventDefault(); // منع الانتقال لصفحة المنتج
+    e.preventDefault();
     e.stopPropagation();
 
-    setAddingId(product.id);
+    // حماية إضافية: التأكد من أن المنتج متاح قبل الإضافة
+    if (!product.is_available) {
+      toast.error("عذراً، هذا المنتج غير متوفر حالياً");
+      return;
+    }
 
-    // تأخير بسيط لمحاكاة المعالجة
+    setAddingId(product.id);
     await new Promise((resolve) => setTimeout(resolve, 600));
 
     addToCart({
@@ -90,7 +92,6 @@ export default function LatestProducts() {
       className="py-20 px-4 md:px-12 max-w-[1600px] mx-auto bg-transparent"
       dir="rtl"
     >
-      {/* Section Header */}
       <div className="flex flex-col items-center mb-16">
         <h2 className="text-4xl md:text-5xl font-black text-[#2D3436] mb-4">
           أحدث المنتجات
@@ -98,13 +99,13 @@ export default function LatestProducts() {
         <div className="w-20 h-1.5 bg-[#C3CBB9] rounded-full" />
       </div>
 
-      {/* Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-16">
         {products.map((product) => {
           const mainImage =
             product.product_images?.[0]?.image_url || "/placeholder.jpg";
           const hasDiscount = product.discount_value > 0;
           const isAdding = addingId === product.id;
+          const isAvailable = product.is_available; // حالة التوفر
 
           const finalPrice =
             hasDiscount && product.discount_type === "percentage"
@@ -115,41 +116,56 @@ export default function LatestProducts() {
           return (
             <div
               key={product.id}
-              className="group relative flex flex-col bg-white/40 p-3 rounded-[2.5rem] transition-all duration-500 hover:shadow-2xl hover:bg-white border border-transparent hover:border-white"
+              className={`group relative flex flex-col bg-white/40 p-2 rounded-[24px] transition-all duration-500 hover:shadow-xl hover:bg-white border border-transparent hover:border-white ${
+                !isAvailable ? "opacity-75" : ""
+              }`}
             >
               <Link
                 href={`/product/${product.id}`}
                 className="cursor-pointer block flex-1"
               >
-                {/* Product Image Container */}
-                <div className="relative aspect-[4/5] bg-[#F9F7F5] rounded-[2rem] overflow-hidden mb-5 flex items-center justify-center border border-gray-50/50">
+                <div className="relative aspect-square bg-[#F9F7F5] rounded-[1.5rem] overflow-hidden mb-3 flex items-center justify-center border border-gray-50/50">
                   <img
                     src={mainImage}
                     alt={product.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    className={`w-full h-full object-cover transition-transform duration-700 ${
+                      isAvailable ? "group-hover:scale-105" : "grayscale"
+                    }`}
                   />
-                  {hasDiscount && (
-                    <span className="absolute top-4 right-4 bg-[#E29595] text-white text-[11px] font-black px-4 py-1.5 rounded-full shadow-lg z-10 backdrop-blur-md">
+
+                  {/* ملصق الخصم: يظهر فقط لو المنتج متاح */}
+                  {hasDiscount && isAvailable && (
+                    <span className="absolute top-2 right-2 bg-[#E29595] text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md z-10 backdrop-blur-md">
                       {product.discount_type === "percentage"
                         ? `-${product.discount_value}%`
-                        : `خصم ${product.discount_value} ج.م`}
+                        : `خصم ${product.discount_value}`}
                     </span>
+                  )}
+
+                  {/* طبقة المنتج غير المتاح */}
+                  {!isAvailable && (
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-20">
+                      <span className="bg-white/90 text-[#2D3436] px-4 py-2 rounded-full text-xs font-black shadow-lg">
+                        غير متوفر حالياً
+                      </span>
+                    </div>
                   )}
                 </div>
 
-                {/* Product Info */}
-                <div className="text-right px-3 mb-16">
-                  <h3 className="font-bold text-[#2D3436] text-base line-clamp-1 group-hover:text-[#5F6F52] transition-colors">
+                <div className="text-right px-2 mb-12">
+                  <h3 className="font-bold text-[#2D3436] text-sm line-clamp-1 group-hover:text-[#5F6F52] transition-colors">
                     {product.name}
                   </h3>
-                  <div className="flex items-center gap-3 mt-2">
-                    <span className="text-xl font-black text-[#2D3436]">
+                  <div className="flex items-center gap-2 mt-1">
+                    <span
+                      className={`text-lg font-black ${!isAvailable ? "text-gray-400" : "text-[#2D3436]"}`}
+                    >
                       {Number(finalPrice).toLocaleString()}{" "}
-                      <span className="text-[10px] font-medium">ج.م</span>
+                      <span className="text-[9px] font-medium">ج.م</span>
                     </span>
-                    {hasDiscount && (
-                      <span className="text-xs text-gray-400 line-through font-medium">
-                        {product.base_price} ج.م
+                    {hasDiscount && isAvailable && (
+                      <span className="text-[10px] text-gray-400 line-through font-medium">
+                        {product.base_price}
                       </span>
                     )}
                   </div>
@@ -157,23 +173,30 @@ export default function LatestProducts() {
               </Link>
 
               {/* Add to Cart Button */}
-              <div className="absolute bottom-5 left-0 w-full px-5">
+              <div className="absolute bottom-3 left-0 w-full px-3">
                 <button
-                  disabled={isAdding}
+                  disabled={isAdding || !isAvailable}
                   onClick={(e) =>
                     handleAddToCart(e, product, finalPrice, mainImage)
                   }
-                  className={`w-full py-4 rounded-2xl font-black text-xs flex items-center justify-center gap-2 transition-all shadow-sm ${
-                    isAdding
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-[#C3CBB9] text-[#2D3436] hover:bg-[#5F6F52] hover:text-white active:scale-95"
+                  className={`w-full py-2.5 rounded-xl font-bold text-[11px] flex items-center justify-center gap-1.5 transition-all shadow-sm ${
+                    !isAvailable
+                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                      : isAdding
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-[#C3CBB9] text-[#2D3436] hover:bg-[#5F6F52] hover:text-white active:scale-95"
                   }`}
                 >
                   {isAdding ? (
-                    <Loader2 size={16} className="animate-spin" />
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : !isAvailable ? (
+                    <>
+                      <Ban size={14} />
+                      نفذت الكمية
+                    </>
                   ) : (
                     <>
-                      <Plus size={18} />
+                      <Plus size={16} />
                       أضف للسلة
                     </>
                   )}
@@ -184,7 +207,6 @@ export default function LatestProducts() {
         })}
       </div>
 
-      {/* Footer Action */}
       <div className="flex justify-center">
         <Link
           href="/all-products"

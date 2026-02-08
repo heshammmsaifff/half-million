@@ -82,7 +82,7 @@ export default function Navbar() {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user ?? null);
-      }
+      },
     );
 
     return () => authListener.subscription.unsubscribe();
@@ -139,7 +139,7 @@ export default function Navbar() {
 
             {/* Desktop Nav */}
             <div className="hidden lg:flex items-center gap-6 text-[13px] font-black text-[#2D3436]">
-              {/* المتجر مع Mega Menu */}
+              {/* المتجر مع Mega Menu المطور */}
               <div
                 className="relative h-full py-2 group"
                 onMouseEnter={() => setIsMegaMenuOpen(true)}
@@ -157,41 +157,49 @@ export default function Navbar() {
                     }`}
                   />
                 </Link>
+
+                {/* القائمة الكبيرة - Mega Menu */}
                 <div
-                  className={`absolute top-[100%] right-0 mt-2 w-[850px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[2.5rem] border border-[#C3CBB9]/20 p-10 transition-all duration-500 origin-top-right ${
+                  className={`absolute top-[100%] right-0 mt-2 w-[850px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[2.5rem] border border-[#C3CBB9]/20 p-10 transition-all duration-500 origin-top-right z-50 ${
                     isMegaMenuOpen
                       ? "opacity-100 visible translate-y-0"
                       : "opacity-0 invisible -translate-y-4"
                   }`}
                 >
-                  <div className="grid grid-cols-4 gap-10">
-                    {categories.map((mainCat) => (
-                      <div key={mainCat.id} className="space-y-5">
-                        <h3 className="text-[#5F6F52] font-black text-[14px] border-r-4 border-[#5F6F52] pr-3">
-                          {mainCat.name}
-                        </h3>
-                        <div className="flex flex-col gap-3.5 pr-4">
-                          {mainCat.sub_categories?.map((sub) => (
-                            <Link
-                              key={sub.id}
-                              href={`/category/${mainCat.id}/${sub.id}`}
-                              className="text-gray-500 hover:text-black text-xs font-bold transition-all flex items-center justify-between group/item"
-                            >
-                              {sub.name}
-                              <ArrowLeft
-                                size={12}
-                                className="opacity-0 -translate-x-2 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all text-[#5F6F52]"
-                              />
-                            </Link>
-                          ))}
+                  {/* Container مرن مع خاصية التمرير إذا زاد الطول عن حجم الشاشة */}
+                  <div className="max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="flex flex-wrap gap-x-12 gap-y-10">
+                      {categories.map((mainCat) => (
+                        <div
+                          key={mainCat.id}
+                          className="space-y-5 min-w-[160px] flex-1"
+                        >
+                          <h3 className="text-[#5F6F52] font-black text-[14px] border-r-4 border-[#5F6F52] pr-3 sticky top-0 bg-white py-1">
+                            {mainCat.name}
+                          </h3>
+                          <div className="flex flex-col gap-3.5 pr-4">
+                            {mainCat.sub_categories?.map((sub) => (
+                              <Link
+                                key={sub.id}
+                                href={`/category/${mainCat.id}/${sub.id}`}
+                                className="text-gray-500 hover:text-black text-xs font-bold transition-all flex items-center justify-between group/item"
+                              >
+                                {sub.name}
+                                <ArrowLeft
+                                  size={12}
+                                  className="opacity-0 -translate-x-2 group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all text-[#5F6F52]"
+                                />
+                              </Link>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* الماركات القائمة المنسدلة */}
+              {/* الماركات القائمة المنسدلة - مع تحسين التمرير أيضاً */}
               <div
                 className="relative h-full py-2 group"
                 onMouseEnter={() => setIsBrandsMenuOpen(true)}
@@ -210,33 +218,35 @@ export default function Navbar() {
                   />
                 </Link>
                 <div
-                  className={`absolute top-[100%] right-0 mt-2 w-[650px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[2.5rem] border border-[#C3CBB9]/20 p-8 transition-all duration-500 origin-top-right ${
+                  className={`absolute top-[100%] right-0 mt-2 w-[650px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[2.5rem] border border-[#C3CBB9]/20 p-8 transition-all duration-500 origin-top-right z-50 ${
                     isBrandsMenuOpen
                       ? "opacity-100 visible translate-y-0"
                       : "opacity-0 invisible -translate-y-4"
                   }`}
                 >
-                  <div className="grid grid-cols-3 gap-4">
-                    {brands.map((brand) => (
-                      <Link
-                        key={brand.id}
-                        href={`/brand/${brand.id}`}
-                        className="flex items-center gap-3 p-3.5 hover:bg-[#F8F9F4] rounded-[1.2rem] transition-all border border-transparent hover:border-[#C3CBB9]/20"
-                      >
-                        <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-50 border border-gray-100 flex-shrink-0">
-                          <img
-                            src={brand.image_url}
-                            alt={brand.name}
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                        <span className="text-xs font-black text-[#2D3436]">
-                          {brand.name}
-                        </span>
-                      </Link>
-                    ))}
+                  <div className="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="grid grid-cols-3 gap-4">
+                      {brands.map((brand) => (
+                        <Link
+                          key={brand.id}
+                          href={`/brand/${brand.id}`}
+                          className="flex items-center gap-3 p-3.5 hover:bg-[#F8F9F4] rounded-[1.2rem] transition-all border border-transparent hover:border-[#C3CBB9]/20"
+                        >
+                          <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-50 border border-gray-100 flex-shrink-0">
+                            <img
+                              src={brand.image_url}
+                              alt={brand.name}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <span className="text-xs font-black text-[#2D3436]">
+                            {brand.name}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
-                  <div className="mt-6 pt-6 border-t border-gray-50 flex justify-center">
+                  <div className="mt-6 pt-6 border-t border-gray-50 flex justify-center bg-white sticky bottom-0">
                     <Link
                       href="/all-brands"
                       className="text-[11px] font-black text-[#5F6F52] hover:underline"
@@ -249,7 +259,7 @@ export default function Navbar() {
 
               <Link
                 href="/offers"
-                className="text-white bg-[#E29595] hover:bg-[#d88484] px-5 py-2.5 rounded-2xl transition-all shadow-lg shadow-[#E29595]/20 font-black whitespace-nowrap animate-pulse hover:animate-none"
+                className="text-white bg-[#E29595] hover:bg-[#d88484] px-5 py-2.5 rounded-2xl transition-all shadow-lg shadow-[#E29595]/20 font-black whitespace-nowrap"
               >
                 العروض الحصرية
               </Link>

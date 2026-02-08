@@ -6,10 +6,9 @@ body {
   color: #333333;
 }
 
-/* حاوية البراندات السوداء */
 .brands-marquee-container {
-  background-color: rgba(0, 0, 0, 0.893);
-  padding: 1.5rem 0; /* زيادة بسيطة في ارتفاع الحاوية لتناسب الحجم الجديد */
+  background-color: rgba(236, 232, 232, 0.893);
+  padding: 2rem 0;
   overflow: hidden;
   position: relative;
   width: 100%;
@@ -17,28 +16,28 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* المسار الذي يحتوي على الصور */
 .marquee-track {
   display: flex;
   width: max-content;
-  /* السرعة 5s قد تكون سريعة جداً بعد زيادة المسافات، يمكنك تجربتها */
-  animation: scroll-right 8s linear infinite;
+  flex-wrap: nowrap;
+  animation: scroll-left 44s linear infinite;
 }
 
+/* توقف الحركة عند وضع الماوس على الحاوية أو التراك */
 .brands-marquee-container:hover .marquee-track {
-  animation-play-state: paused;
+  animation-play-state: paused !important;
 }
 
-@keyframes scroll-right {
-  0% {
-    transform: translateX(-50%);
-  }
-  100% {
+@keyframes scroll-left {
+  from {
     transform: translateX(0);
   }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
-/* التدرج الجانبي */
+/* تظليل الجوانب */
 /* .brands-marquee-container::before,
 .brands-marquee-container::after {
   content: "";
@@ -60,33 +59,34 @@ body {
   background: linear-gradient(to left, black, transparent);
 }
 
-/* --- التعديل هنا لزيادة المسافة --- */
 .brand-item {
-  padding: 0 4rem; /* تم زيادة المسافة من 1.5rem إلى 4rem */
+  padding: 0 4rem;
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  transition: transform 0.3s ease;
-}
-
-.brand-item:hover {
-  transform: scale(1.1);
 }
 
 .brand-img {
   height: 75px;
   width: auto;
   object-fit: contain;
-  transition: 0.3s ease;
+  filter: grayscale(100%);
+  opacity: 0.5;
+  transition: all 0.4s ease;
 }
 
-/* استجابة الموبايل */
+.brand-item:hover .brand-img {
+  filter: grayscale(0%);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
 @media (max-width: 768px) {
   .brand-img {
-    height: 50px; /* تقليل الحجم قليلاً للموبايل ليناسب الشاشة */
+    height: 50px;
   }
   .brand-item {
-    padding: 0 2rem; /* مسافة متوسطة للموبايل */
+    padding: 0 2rem;
   }
   .brands-marquee-container::before,
   .brands-marquee-container::after {

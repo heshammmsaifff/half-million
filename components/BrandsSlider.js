@@ -18,11 +18,12 @@ export default function BrandsMarquee() {
 
   if (brands.length === 0) return null;
 
-  const displayItems = [...brands, ...brands, ...brands, ...brands, ...brands];
+  // تكرار مرتين فقط ليتماشى مع translateX(-50%)
+  const displayItems = [...brands, ...brands];
 
   return (
-    <div className="brands-marquee-container shadow-inner group">
-      <div className="marquee-track" dir="ltr">
+    <div className="brands-marquee-container" dir="ltr">
+      <div className="marquee-track">
         {displayItems.map((brand, index) => (
           <Link
             key={`${brand.id}-${index}`}
@@ -32,8 +33,7 @@ export default function BrandsMarquee() {
             <img
               src={brand.image_url}
               alt={brand.name}
-              /* Added grayscale filter to unify logos, turns to full color on hover */
-              className="brand-img rounded-2xl opacity-70 hover:grayscale hover:opacity-100 transition-all duration-500 ease-in-out"
+              className="brand-img"
               loading="lazy"
             />
           </Link>
