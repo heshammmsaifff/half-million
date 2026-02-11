@@ -84,6 +84,8 @@ body {
 @media (max-width: 768px) {
   .brand-img {
     height: 50px;
+    filter: none;
+    opacity: 1;
   }
   .brand-item {
     padding: 0 2rem;

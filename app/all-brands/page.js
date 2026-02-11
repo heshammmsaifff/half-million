@@ -110,7 +110,7 @@ export default async function AllBrandsPage() {
             الرسميين.
           </p>
           <Link
-            href="/products"
+            href="/all-products"
             className="inline-flex items-center gap-3 bg-white text-[#2D3436] px-8 py-4 rounded-2xl font-black hover:bg-[#5F6F52] hover:text-white transition-all shadow-xl"
           >
             تصفح كل المنتجات

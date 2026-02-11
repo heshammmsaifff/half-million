@@ -13,6 +13,7 @@ import {
   Tag,
   Sparkles,
   PhoneCall,
+  LayoutGrid,
 } from "lucide-react";
 
 import { supabase } from "@/lib/supabaseClient";
@@ -35,6 +36,7 @@ export default function Navbar() {
   const [openMobileCat, setOpenMobileCat] = useState(null);
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
   const [isBrandsMenuOpen, setIsBrandsMenuOpen] = useState(false);
+  const [isCategoriesMenuOpen, setIsCategoriesMenuOpen] = useState(false);
 
   const { cart } = useCart();
   const searchRef = useRef(null);
@@ -198,8 +200,95 @@ export default function Navbar() {
                   </div>
                 </div>
               </div>
+              {/* الأقسام الرئيسية  Mega Menu */}
+              <div
+                className="relative h-full py-2 group"
+                onMouseEnter={() => setIsCategoriesMenuOpen(true)}
+                onMouseLeave={() => setIsCategoriesMenuOpen(false)}
+              >
+                <Link
+                  href="/categories"
+                  className="flex items-center gap-1.5 hover:text-[#5F6F52] transition-colors"
+                >
+                  الأقسام الرئيسية
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform duration-300 ${
+                      isCategoriesMenuOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </Link>
 
-              {/* الماركات القائمة المنسدلة - مع تحسين التمرير أيضاً */}
+                {/* القائمة الكبيرة - Mega Menu (مطابق تماماً للمتجر في العرض والتصميم) */}
+                <div
+                  className={`absolute top-[100%] right-0 mt-2 w-[850px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[2.5rem] border border-[#C3CBB9]/20 p-10 transition-all duration-500 origin-top-right z-50 ${
+                    isCategoriesMenuOpen
+                      ? "opacity-100 visible translate-y-0"
+                      : "opacity-0 invisible -translate-y-4"
+                  }`}
+                >
+                  <div className="max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+                    {/* عرض الأقسام بشكل عرضي مريح للعين */}
+                    <div className="flex flex-wrap gap-x-8 gap-y-8">
+                      {categories.map((cat) => (
+                        <Link
+                          key={cat.id}
+                          href={`/categories/${cat.id}`}
+                          className="group/cat min-w-[220px] flex-1 bg-[#F8F9F4]/50 p-5 rounded-[2rem] border border-transparent hover:border-[#5F6F52]/20 hover:bg-white hover:shadow-xl transition-all duration-300 flex items-center gap-4"
+                        >
+                          {/* حاوية الصورة الدائرية */}
+                          <div className="relative w-14 h-14 flex-shrink-0">
+                            <div className="w-full h-full rounded-full overflow-hidden bg-white border-2 border-white shadow-sm group-hover/cat:shadow-md transition-all duration-300 flex items-center justify-center">
+                              {cat.image_url ? (
+                                <img
+                                  src={cat.image_url}
+                                  alt={cat.name}
+                                  className="w-full h-full object-cover group-hover/cat:scale-110 transition-transform duration-500"
+                                />
+                              ) : (
+                                /* الشعار الافتراضي من public */
+                                <img
+                                  src="/logo.svg"
+                                  alt="Logo"
+                                  className="w-2/3 h-2/3 object-contain opacity-20 group-hover/cat:opacity-40 transition-opacity"
+                                />
+                              )}
+                            </div>
+                          </div>
+
+                          {/* نصوص القسم */}
+                          <div className="flex-1 overflow-hidden text-right">
+                            <h3 className="text-[#2D3436] font-black text-[14px] mb-0.5 group-hover/cat:text-[#5F6F52] transition-colors truncate">
+                              {cat.name}
+                            </h3>
+                            <div className="flex items-center gap-1">
+                              <p className="text-[#5F6F52]/60 text-[10px] font-bold line-clamp-1">
+                                استكشفي الآن
+                              </p>
+                              <ArrowLeft
+                                size={12}
+                                className="opacity-0 -translate-x-1 group-hover/cat:opacity-100 group-hover/cat:translate-x-0 transition-all text-[#E29595]"
+                              />
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+
+                    {/* زر سفلي للذهاب لصفحة كل الأقسام */}
+                    <div className="mt-10 pt-6 border-t border-[#C3CBB9]/20 text-center">
+                      <Link
+                        href="/categories"
+                        className="inline-flex items-center gap-2 text-[#5F6F52] font-black text-xs hover:gap-4 transition-all"
+                      >
+                        عرض كافة التصنيفات الرئيسية <ArrowLeft size={14} />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* الماركات القائمة المنسدلة - مع تحسين التمرير */}
               <div
                 className="relative h-full py-2 group"
                 onMouseEnter={() => setIsBrandsMenuOpen(true)}
@@ -217,6 +306,7 @@ export default function Navbar() {
                     }`}
                   />
                 </Link>
+
                 <div
                   className={`absolute top-[100%] right-0 mt-2 w-[650px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[2.5rem] border border-[#C3CBB9]/20 p-8 transition-all duration-500 origin-top-right z-50 ${
                     isBrandsMenuOpen
@@ -520,11 +610,7 @@ export default function Navbar() {
                   </button>
                 </>
               ) : (
-                <div className="p-8 text-center">
-                  <p className="text-[#C3CBB9] text-sm font-bold">
-                    لا توجد منتجات مطابقة لـ "{searchQuery}"
-                  </p>
-                </div>
+                <div className="p-0 text-center"></div>
               )}
             </div>
 
@@ -592,13 +678,21 @@ export default function Navbar() {
                 </div>
                 <ChevronLeft size={16} className="text-gray-300" />
               </Link>
+
+              <Link
+                href="/categories"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center justify-between font-black text-[#2D3436] p-5 bg-white border border-gray-100 rounded-[1.5rem] hover:border-[#5F6F52]/30 transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <span>الأقسام الرئيسية</span>
+                </div>
+                <ChevronLeft size={16} className="text-gray-300" />
+              </Link>
             </div>
 
             {/* Categories Mobile Accordion */}
             <div className="space-y-4 pt-4">
-              <p className="text-[11px] font-black text-[#5F6F52] uppercase tracking-[0.2em] px-2">
-                الأقسام الرئيسية
-              </p>
               {categories.map((cat) => (
                 <div key={cat.id} className="group">
                   <div

@@ -33,7 +33,7 @@ export default function BrandsMarquee() {
             <img
               src={brand.image_url}
               alt={brand.name}
-              className="brand-img"
+              className="brand-img rounded-4xl"
               loading="lazy"
             />
           </Link>
