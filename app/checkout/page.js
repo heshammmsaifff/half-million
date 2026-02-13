@@ -40,8 +40,8 @@ export default function CheckoutPage() {
   const isMandatoryOnline = totalAmount >= 2000;
 
   // أرقام الحسابات (تأكد من صحتها)
-  const WALLET_NUMBER = "01092141964";
-  const INSTAPAY_ID = "username@instapay";
+  const WALLET_NUMBER = "01063272272";
+  const INSTAPAY_ID = "xowof272272";
 
   const [formData, setFormData] = useState({
     name: "",
@@ -456,7 +456,7 @@ export default function CheckoutPage() {
                               عنوان InstaPay
                             </p>
                             <p className="font-black text-[#2D3436]">
-                              {INSTAPAY_ID}
+                              {INSTAPAY_ID}@instapay
                             </p>
                           </div>
                           <button

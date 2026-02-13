@@ -19,11 +19,11 @@ const Footer = () => {
 
   // بيانات التواصل - يمكنك تغيير الروابط هنا بسهولة
   const contactLinks = {
-    phone: "01000000000",
+    phone: "01022557962",
     email: "info@halfmillion1.com",
-    instagram: "#",
-    facebook: "#",
-    twitter: "#",
+    instagram: "https://www.instagram.com/half96862?igsh=b3F1bmhzOXl2YzZz",
+    facebook: "https://www.facebook.com/share/17Pv1LK3Se/",
+    // twitter: "#",
   };
 
   const policies = {
@@ -184,14 +184,14 @@ const Footer = () => {
               >
                 <Facebook size={20} />
               </a>
-              <a
+              {/* <a
                 href={contactLinks.twitter}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center hover:bg-[#C3CBB9] hover:text-[#1A1C17] transition-all duration-500"
               >
                 <Twitter size={20} />
-              </a>
+              </a> */}
             </div>
           </div>
         </div>

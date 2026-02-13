@@ -32,23 +32,23 @@ export default function ContactUs() {
     {
       icon: <Phone className="w-6 h-6" />,
       title: "اتصل بنا",
-      detail: "0123456789",
+      detail: "01022557962",
       subDetail: "متاح من 9 صباحاً لـ 10 مساءً",
-      link: "tel:0123456789",
+      link: "tel:01022557962",
       color: "bg-blue-50 text-blue-600",
     },
     {
       icon: <MessageCircle className="w-6 h-6" />,
       title: "واتساب",
-      detail: "0109876543",
+      detail: "01022557986",
       subDetail: "رد سريع خلال ساعة",
-      link: "https://wa.me/20109876543",
+      link: "https://wa.me/201022557986",
       color: "bg-green-50 text-green-600",
     },
     {
       icon: <Mail className="w-6 h-6" />,
       title: "البريد الإلكتروني",
-      detail: "support@halfmillion.com",
+      detail: "info@halfmillion1.com",
       subDetail: "للاستفسارات الرسمية",
       link: "mailto:support@halfmillion.com",
       color: "bg-purple-50 text-purple-600",
@@ -123,7 +123,7 @@ export default function ContactUs() {
                     العنوان
                   </p>
                   <p className="font-bold">
-                    القاهرة، التجمع الخامس، شارع التسعين
+                    الشرقية، فاقوس، شارع كفر العدوي، أمام 9A كافيه
                   </p>
                 </div>
               </div>
@@ -153,12 +153,12 @@ export default function ContactUs() {
               >
                 <Facebook size={20} />
               </Link>
-              <Link
+              {/* <Link
                 href="#"
                 className="w-12 h-12 rounded-xl bg-black text-white flex items-center justify-center hover:bg-sky-500 transition-colors"
               >
                 <Twitter size={20} />
-              </Link>
+              </Link> */}
             </div>
           </div>
         </div>
