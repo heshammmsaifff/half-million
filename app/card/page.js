@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { Globe, MapPin, Phone, X, Loader2 } from "lucide-react";
-import { FaWhatsapp } from "react-icons/fa6";
+import { FaWhatsapp, FaFacebook, FaInstagram } from "react-icons/fa6";
 import { createClient } from "@supabase/supabase-js";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -210,7 +210,41 @@ const MobileFullCard = () => {
               <div className="w-16 h-1.5 bg-neutral-700 rounded-full mx-auto mb-10" />
               <div className="space-y-4">
                 <a
-                  href="tel:+201000000000"
+                  href="https://www.instagram.com/half96862?igsh=b3F1bmhzOXl2YzZz"
+                  target="_blank"
+                  className="flex justify-between items-center p-6 bg-neutral-800/50 rounded-[24px] border border-white/5 hover:bg-neutral-800 transition-colors"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-xs text-neutral-500 uppercase font-bold mb-1">
+                      instagram
+                    </span>
+                    <span className="text-xl font-mono text-white tracking-wider">
+                      Follow Us
+                    </span>
+                  </div>
+                  <div className="bg-green-500/10 p-3 rounded-full text-pink-500">
+                    <FaInstagram size={26} />
+                  </div>
+                </a>
+                <a
+                  href="https://www.facebook.com/share/17Pv1LK3Se/"
+                  target="_blank"
+                  className="flex justify-between items-center p-6 bg-neutral-800/50 rounded-[24px] border border-white/5 hover:bg-neutral-800 transition-colors"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-xs text-neutral-500 uppercase font-bold mb-1">
+                      FaceBook
+                    </span>
+                    <span className="text-xl font-mono text-white tracking-wider">
+                      Follow Us
+                    </span>
+                  </div>
+                  <div className="bg-green-500/10 p-3 rounded-full text-blue-500">
+                    <FaFacebook size={26} />
+                  </div>
+                </a>
+                <a
+                  href="tel:+201022557962"
                   className="flex justify-between items-center p-6 bg-neutral-800/50 rounded-[24px] border border-white/5 hover:bg-neutral-800 transition-colors"
                 >
                   <div className="flex flex-col">
@@ -218,7 +252,7 @@ const MobileFullCard = () => {
                       Call Us
                     </span>
                     <span className="text-xl font-mono text-white tracking-wider">
-                      01000000000
+                      01022557962
                     </span>
                   </div>
                   <div className="bg-emerald-500/10 p-3 rounded-full text-emerald-500">
@@ -226,7 +260,7 @@ const MobileFullCard = () => {
                   </div>
                 </a>
                 <a
-                  href="https://wa.me/201000000000"
+                  href="https://wa.me/201022557986"
                   target="_blank"
                   className="flex justify-between items-center p-6 bg-neutral-800/50 rounded-[24px] border border-white/5 hover:bg-neutral-800 transition-colors"
                 >
@@ -247,7 +281,7 @@ const MobileFullCard = () => {
                 onClick={() => setIsModalOpen(false)}
                 className="w-full mt-8 py-5 text-neutral-400 font-bold uppercase tracking-widest hover:text-white transition-colors"
               >
-                إغلاق
+                Close
               </button>
             </motion.div>
           </motion.div>
