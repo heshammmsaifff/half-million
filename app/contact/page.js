@@ -142,13 +142,13 @@ export default function ContactUs() {
 
             <div className="flex justify-center gap-5">
               <Link
-                href="#"
+                href="https://www.instagram.com/half96862?igsh=b3F1bmhzOXl2YzZz"
                 className="w-12 h-12 rounded-xl bg-black text-white flex items-center justify-center hover:bg-pink-600 transition-colors"
               >
                 <Instagram size={20} />
               </Link>
               <Link
-                href="#"
+                href="https://www.facebook.com/share/17Pv1LK3Se/"
                 className="w-12 h-12 rounded-xl bg-black text-white flex items-center justify-center hover:bg-blue-600 transition-colors"
               >
                 <Facebook size={20} />
