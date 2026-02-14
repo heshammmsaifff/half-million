@@ -17,6 +17,7 @@ import {
   X,
   Star,
   ShieldCheck,
+  XCircle,
 } from "lucide-react";
 import ProductImageGallery from "@/components/ProductImageGallery";
 import { useCart } from "@/context/CartContext";
@@ -31,12 +32,18 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const { addToCart } = useCart();
+  const [selectedVariant, setSelectedVariant] = useState(null);
+
+  useEffect(() => {
+    if (product?.is_pills && product.product_variants?.length > 0) {
+      setSelectedVariant(product.product_variants[0]);
+    }
+  }, [product]);
 
   useEffect(() => {
     const fetchData = async () => {
       const { productId } = await paramsPromise;
       try {
-        // 1. جلب بيانات المنتج الأساسي مع ربط جدول المقارنة والعلامة التجارية
         const { data: productData, error: productError } = await supabase
           .from("products")
           .select(
@@ -44,6 +51,7 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
     *,
     brands!left (id, name), 
     product_images (id, image_url, is_main),
+    product_variants (*),
     sub_categories:subcategory_id (id, name, category_id),
     compared_with:comparison_product_id (
       id, 
@@ -60,12 +68,10 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
         if (productError) throw productError;
         setProduct(productData);
 
-        // تعيين منتج المقارنة إذا وجد
         if (productData.compared_with) {
           setComparisonProduct(productData.compared_with);
         }
 
-        // 2. جلب منتجات متعلقة (4 منتجات كما في الكود الأول لتصميم الشبكة)
         if (productData?.subcategory_id) {
           const { data: relatedData } = await supabase
             .from("products")
@@ -117,31 +123,49 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
       </div>
     );
 
-  // حسابات الأسعار
-  const basePrice = Number(product.base_price);
-  const discountValue = Number(product.discount_value || 0);
-  const finalPrice =
-    product.discount_type === "percentage"
-      ? basePrice - basePrice * (discountValue / 100)
-      : basePrice - discountValue;
-
-  const discountPercentage =
-    product.discount_type === "percentage"
-      ? discountValue
-      : Math.round((discountValue / basePrice) * 100);
-
+  // --- إصلاح الخطأ: تعريف متغير الصور هنا ليكون متاحاً في كل الصفحة ---
   const images = [...(product.product_images || [])].sort(
     (a, b) => (b.is_main ? 1 : 0) - (a.is_main ? 1 : 0),
   );
+
+  // حسابات الأسعار التفاعلية
+  const isPills = product.is_pills;
+  const currentPriceData =
+    isPills && selectedVariant
+      ? {
+          base: Number(selectedVariant.base_price),
+          discVal: Number(selectedVariant.discount_value || 0),
+          discType: selectedVariant.discount_type,
+        }
+      : {
+          base: Number(product.base_price),
+          discVal: Number(product.discount_value || 0),
+          discType: product.discount_type,
+        };
+
+  const finalPrice =
+    currentPriceData.discType === "percentage"
+      ? currentPriceData.base -
+        currentPriceData.base * (currentPriceData.discVal / 100)
+      : currentPriceData.base - currentPriceData.discVal;
+
+  const discountPercentage =
+    currentPriceData.discType === "percentage"
+      ? currentPriceData.discVal
+      : Math.round((currentPriceData.discVal / currentPriceData.base) * 100);
 
   const handleAddToCart = async () => {
     setAdding(true);
     await new Promise((r) => setTimeout(r, 600));
     addToCart({
-      id: product.id,
-      name: product.name,
+      id: isPills ? `${product.id}-${selectedVariant.id}` : product.id,
+      productId: product.id,
+      name: isPills
+        ? `${product.name} (${selectedVariant.pill_count} قرص)`
+        : product.name,
       price: finalPrice,
-      image: images[0]?.image_url,
+      image: images[0]?.image_url, // الآن الصور معرفة ولن يحدث خطأ
+      variantId: selectedVariant?.id || null,
     });
     toast.success("تمت الإضافة للسلة بنجاح", {
       style: {
@@ -261,8 +285,35 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
               </p>
             </div>
 
+            {/* قسم اختيار العبوات - يظهر فقط إذا كان المنتج أقراص */}
+            {isPills && product.product_variants?.length > 0 && (
+              <div className="space-y-4 pt-6 animate-in fade-in slide-in-from-bottom-2 duration-700">
+                <label className="text-sm font-black text-[#2D3436] flex items-center gap-2">
+                  <ShoppingBag size={16} className="text-[#5F6F52]" />
+                  اختر حجم العبوة:
+                </label>
+                <div className="flex flex-wrap gap-3">
+                  {product.product_variants.map((variant) => (
+                    <button
+                      key={variant.id}
+                      onClick={() => setSelectedVariant(variant)}
+                      className={`px-6 py-4 rounded-2xl font-bold border-2 transition-all flex flex-col items-center min-w-[100px] ${
+                        selectedVariant?.id === variant.id
+                          ? "border-[#5F6F52] bg-[#5F6F52] text-white shadow-lg scale-105"
+                          : "border-[#C3CBB9]/20 bg-white text-[#2D3436] hover:border-[#5F6F52]/40"
+                      }`}
+                    >
+                      <span className="text-lg">{variant.pill_count}</span>
+                      <span className="text-[10px] uppercase opacity-80 font-black">
+                        قرص
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3">
-              {/* رابط القسم */}
               <Link
                 href={`/category/${product.sub_categories?.category_id}/${product.sub_categories?.id}`}
                 className="flex flex-col gap-1 bg-white p-4 rounded-2xl border border-[#C3CBB9]/20 hover:border-[#5F6F52]/40 hover:shadow-sm transition-all group"
@@ -275,7 +326,6 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                 </span>
               </Link>
 
-              {/* رابط البراند */}
               <Link
                 href={`/brand/${product.brand_id}`}
                 className="flex flex-col gap-1 bg-white p-4 rounded-2xl border border-[#C3CBB9]/20 hover:border-[#5F6F52]/40 hover:shadow-sm transition-all group"
@@ -301,10 +351,10 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                   <span className="text-sm font-bold text-[#C3CBB9]">ج.م</span>
                 </div>
 
-                {discountValue > 0 && (
+                {currentPriceData.discVal > 0 && (
                   <div className="flex items-center gap-3">
                     <span className="text-[#C3CBB9] line-through font-bold text-lg">
-                      {basePrice.toLocaleString()} ج.م
+                      {currentPriceData.base.toLocaleString()} ج.م
                     </span>
                     <span className="bg-[#E29595] text-white px-3 py-1 rounded-lg text-xs font-black animate-pulse">
                       وفر {discountPercentage}%
@@ -364,9 +414,7 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
         </div>
 
         {product.detailed_description && (
-          /* إضافة mx-auto لضمان التوسط و max-w-[80vw] أو w-[80%] حسب الحاوية الأب */
           <div className="bg-white p-8 rounded-[2rem] border border-[#C3CBB9]/20 shadow-sm relative overflow-hidden w-full lg:w-[80vw] lg:max-w-[1200px] mx-auto mt-12">
-            {/* خط الديكور الجانبي */}
             <div className="absolute top-0 right-0 w-1.5 h-full bg-[#5F6F52]" />
 
             <h4 className="font-black text-[#2D3436] mb-6 flex items-center gap-3 text-lg">
@@ -374,14 +422,12 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
               التفاصيل الكاملة
             </h4>
 
-            {/* تحسين عرض النص ليناسب المساحة الأكبر */}
             <div className="text-gray-600 text-base leading-loose whitespace-pre-line font-medium max-w-4xl">
               {product.detailed_description}
             </div>
           </div>
         )}
 
-        {/* أقسام المعلومات الإضافية (المكونات والنتائج) */}
         <div className="mt-24 space-y-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {product.ingredients?.length > 0 && (
@@ -444,7 +490,6 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
             )}
           </div>
 
-          {/* خطوات الاستخدام */}
           {product.usage_instructions?.length > 0 && (
             <div className="bg-white p-12 rounded-[3.5rem] border border-[#C3CBB9]/20 shadow-sm">
               <h3 className="text-3xl font-black text-[#2D3436] mb-12 text-center italic">
@@ -468,11 +513,9 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
             </div>
           )}
 
-          {/* قسم التنبيهات الهامة - عرض كامل الشاشة */}
           {product.warnings?.length > 0 && (
             <div className="mt-16 w-full">
               <div className="bg-[#E29595]/5 p-8 md:p-12 rounded-[3.5rem] border border-[#E29595]/20 relative overflow-hidden group">
-                {/* لمسة فنية: أيقونة خلفية ضخمة باهتة */}
                 <AlertTriangle
                   className="absolute -bottom-10 -left-10 text-[#E29595]/10 rotate-12 transition-transform duration-700 group-hover:rotate-0"
                   size={250}
@@ -508,13 +551,11 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                   </div>
                 </div>
 
-                {/* خط زخرفي علوي */}
                 <div className="absolute top-0 right-0 w-32 h-1 bg-gradient-to-l from-[#E29595] to-transparent" />
               </div>
             </div>
           )}
 
-          {/* المقارنة الذكية (Comparison) */}
           {comparisonProduct && (
             <div className="pt-20">
               <div className="max-w-5xl mx-auto">
@@ -584,7 +625,6 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
             </div>
           )}
 
-          {/* فيديو اليوتيوب */}
           {videoId && (
             <div className="pt-24 text-center">
               <h3 className="text-4xl font-black mb-12 text-[#2D3436] tracking-tight underline decoration-[#5F6F52] decoration-4 underline-offset-8">
@@ -601,7 +641,6 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
             </div>
           )}
 
-          {/* المنتجات ذات الصلة */}
           {relatedProducts.length > 0 && (
             <div className="pt-32">
               <div className="flex items-center justify-between mb-12">
