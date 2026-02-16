@@ -273,15 +273,20 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
           </Link>
           <ChevronRight size={14} className="rotate-180" />
           {/* عرض أول فئة فرعية من الجدول الوسيط أو الفئة الأساسية */}
-          {product.product_subcategories && product.product_subcategories.length > 0 ? (
+          {product.product_subcategories &&
+          product.product_subcategories.length > 0 ? (
             <>
-              {product.product_subcategories[0].sub_categories?.main_categories && (
+              {product.product_subcategories[0].sub_categories
+                ?.main_categories && (
                 <>
                   <Link
-                    href={`/category/${product.product_subcategories[0].sub_categories.main_categories.id}`}
+                    href={`/categories/${product.product_subcategories[0].sub_categories.main_categories.id}`}
                     className="hover:text-[#5F6F52] transition-all"
                   >
-                    {product.product_subcategories[0].sub_categories.main_categories.name}
+                    {
+                      product.product_subcategories[0].sub_categories
+                        .main_categories.name
+                    }
                   </Link>
                   <ChevronRight size={14} className="rotate-180" />
                 </>
@@ -362,50 +367,53 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
             )}
 
             {/* عرض جميع الفئات الفرعية */}
-            {product.product_subcategories && product.product_subcategories.length > 0 && (
-              <div className="space-y-3">
-                <span className="text-gray-400 text-[10px] font-black flex items-center gap-1 uppercase">
-                  <Tag size={12} /> الأقسام الفرعية
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {product.product_subcategories.map((psc, idx) => {
-                    const subCat = psc.sub_categories;
-                    if (!subCat) return null;
-                    return (
-                      <Link
-                        key={idx}
-                        href={`/category/${subCat.category_id}/${subCat.id}`}
-                        className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-[#C3CBB9]/20 hover:border-[#5F6F52]/40 hover:shadow-sm transition-all group"
-                      >
-                        <span className="text-[#2D3436] font-bold text-sm group-hover:text-[#5F6F52] transition-colors">
-                          {subCat.main_categories?.name && (
-                            <span className="text-gray-400 text-xs mr-1">
-                              {subCat.main_categories.name} /
-                            </span>
-                          )}
-                          {subCat.name}
-                        </span>
-                      </Link>
-                    );
-                  })}
+            {product.product_subcategories &&
+              product.product_subcategories.length > 0 && (
+                <div className="space-y-3">
+                  <span className="text-gray-400 text-[10px] font-black flex items-center gap-1 uppercase">
+                    <Tag size={12} /> الأقسام الفرعية
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {product.product_subcategories.map((psc, idx) => {
+                      const subCat = psc.sub_categories;
+                      if (!subCat) return null;
+                      return (
+                        <Link
+                          key={idx}
+                          href={`/category/${subCat.category_id}/${subCat.id}`}
+                          className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-[#C3CBB9]/20 hover:border-[#5F6F52]/40 hover:shadow-sm transition-all group"
+                        >
+                          <span className="text-[#2D3436] font-bold text-sm group-hover:text-[#5F6F52] transition-colors">
+                            {subCat.main_categories?.name && (
+                              <span className="text-gray-400 text-xs mr-1">
+                                {subCat.main_categories.name} /
+                              </span>
+                            )}
+                            {subCat.name}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {/* عرض القسم الفرعي الأساسي (للتوافق مع البيانات القديمة) */}
-            {(!product.product_subcategories || product.product_subcategories.length === 0) && product.sub_categories && (
-              <Link
-                href={`/category/${product.sub_categories?.category_id}/${product.sub_categories?.id}`}
-                className="flex flex-col gap-1 bg-white p-4 rounded-2xl border border-[#C3CBB9]/20 hover:border-[#5F6F52]/40 hover:shadow-sm transition-all group"
-              >
-                <span className="text-gray-400 text-[10px] font-black flex items-center gap-1 uppercase group-hover:text-[#5F6F52] transition-colors">
-                  <Tag size={12} /> القسم
-                </span>
-                <span className="text-[#2D3436] font-bold text-sm group-hover:text-[#5F6F52] transition-colors">
-                  {product.sub_categories?.name}
-                </span>
-              </Link>
-            )}
+            {(!product.product_subcategories ||
+              product.product_subcategories.length === 0) &&
+              product.sub_categories && (
+                <Link
+                  href={`/category/${product.sub_categories?.category_id}/${product.sub_categories?.id}`}
+                  className="flex flex-col gap-1 bg-white p-4 rounded-2xl border border-[#C3CBB9]/20 hover:border-[#5F6F52]/40 hover:shadow-sm transition-all group"
+                >
+                  <span className="text-gray-400 text-[10px] font-black flex items-center gap-1 uppercase group-hover:text-[#5F6F52] transition-colors">
+                    <Tag size={12} /> القسم
+                  </span>
+                  <span className="text-[#2D3436] font-bold text-sm group-hover:text-[#5F6F52] transition-colors">
+                    {product.sub_categories?.name}
+                  </span>
+                </Link>
+              )}
 
             <div className="grid grid-cols-2 gap-3">
               <Link
