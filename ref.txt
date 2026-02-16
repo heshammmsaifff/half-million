@@ -1,0 +1,1327 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import imageCompression from "browser-image-compression";
+import {
+  Loader2,
+  Upload,
+  X,
+  PackagePlus,
+  Save,
+  Plus,
+  Trash2,
+  ArrowRightLeft,
+  Star,
+  ArrowRight,
+  ArrowLeft,
+  Tag,
+  CheckCircle2,
+  AlertCircle,
+  ChevronDown,
+  Check,
+  Search,
+} from "lucide-react";
+import Swal from "sweetalert2";
+
+export default function ProductForm({ onDone, editing, clearEdit }) {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [detailedDescription, setDetailedDescription] = useState("");
+  const [price, setPrice] = useState("");
+
+  const [discountType, setDiscountType] = useState("percentage");
+  const [discountValue, setDiscountValue] = useState("");
+  const [isAvailable, setIsAvailable] = useState(true);
+
+  const [subIds, setSubIds] = useState([]); // مصفوفة للأقسام الفرعية
+  const [brandId, setBrandId] = useState("");
+  const [youtubeLink, setYoutubeLink] = useState("");
+
+  const [ingredients, setIngredients] = useState([]);
+  const [benefits, setBenefits] = useState([]);
+  const [usageSteps, setUsageSteps] = useState([]);
+  const [warnings, setWarnings] = useState([]);
+
+  const [comparisonId, setComparisonId] = useState("");
+  const [comparisonText, setComparisonText] = useState("");
+  const [productImages, setProductImages] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [subs, setSubs] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isSubCategoriesModalOpen, setIsSubCategoriesModalOpen] = useState(false);
+  const [subCategoriesSearchTerm, setSubCategoriesSearchTerm] = useState("");
+
+  const [isPills, setIsPills] = useState(false);
+  const [variants, setVariants] = useState([]);
+
+  const [unitType, setUnitType] = useState("pill");
+
+  const addVariant = () => {
+    setVariants([
+      ...variants,
+      {
+        pill_count: "",
+        base_price: "",
+        discount_type: "percentage",
+        discount_value: 0,
+      },
+    ]);
+  };
+
+  const updateVariant = (index, field, value) => {
+    const newVariants = [...variants];
+    newVariants[index][field] = value;
+    setVariants(newVariants);
+  };
+
+  const calculateFinalPrice = () => {
+    const base = Number(price) || 0;
+    const disc = Number(discountValue) || 0;
+    let finalPrice = base;
+
+    if (discountType === "percentage") {
+      finalPrice = base - base * (disc / 100);
+    } else {
+      finalPrice = base - disc;
+    }
+    if (finalPrice < 0) finalPrice = 0;
+    return parseFloat(finalPrice.toFixed(2));
+  };
+
+  const handleSelectProduct = (product) => {
+    setComparisonId(product.id);
+    setIsModalOpen(false);
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const [resSubs, resBrands, resProds] = await Promise.all([
+        supabase
+          .from("sub_categories")
+          .select(`id, name, main_categories(name)`),
+        supabase.from("brands").select("id, name"),
+        supabase.from("products").select("id, name"),
+      ]);
+      setSubs(resSubs.data || []);
+      setBrands(resBrands.data || []);
+      setAllProducts(resProds.data || []);
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const loadEditingData = async () => {
+      if (editing) {
+        setName(editing.name || "");
+        setDescription(editing.description || "");
+        setDetailedDescription(editing.detailed_description || "");
+        setPrice(editing.base_price || "");
+        setDiscountType(editing.discount_type || "percentage");
+        setDiscountValue(editing.discount_value || "");
+        setIsAvailable(editing.is_available ?? true);
+        setBrandId(editing.brand_id || "");
+        setYoutubeLink(editing.youtube_link || "");
+        setIngredients(
+          Array.isArray(editing.ingredients) ? editing.ingredients : [],
+        );
+        setBenefits(Array.isArray(editing.benefits) ? editing.benefits : []);
+        setUsageSteps(
+          Array.isArray(editing.usage_instructions)
+            ? editing.usage_instructions
+            : [],
+        );
+        setWarnings(Array.isArray(editing.warnings) ? editing.warnings : []);
+        setComparisonId(editing.comparison_product_id || "");
+        setComparisonText(editing.comparison_text || "");
+
+        // تحميل حالة الأقراص ونوع الوحدة إن وجدت
+        setIsPills(editing.is_pills ?? false);
+        setUnitType(editing.unit_type || "pill");
+
+        // تحميل الأقسام الفرعية من الجدول الوسيط
+        if (editing.id) {
+          const { data: subCategoriesData } = await supabase
+            .from("product_subcategories")
+            .select("subcategory_id")
+            .eq("product_id", editing.id);
+
+          if (subCategoriesData && subCategoriesData.length > 0) {
+            setSubIds(subCategoriesData.map((item) => item.subcategory_id));
+          } else {
+            // إذا لم توجد أقسام في الجدول الوسيط، نستخدم القسم القديم (للتوافق مع البيانات القديمة)
+            setSubIds(editing.subcategory_id ? [editing.subcategory_id] : []);
+          }
+
+          // تحميل الأحجام (variants) من قاعدة البيانات في وضع التعديل
+          const { data: variantsData, error: variantsError } = await supabase
+            .from("product_variants")
+            .select("pill_count, base_price, discount_type, discount_value")
+            .eq("product_id", editing.id);
+
+          if (!variantsError && Array.isArray(variantsData)) {
+            setVariants(
+              variantsData.map((v) => ({
+                pill_count:
+                  v.pill_count !== null && v.pill_count !== undefined
+                    ? String(v.pill_count)
+                    : "",
+                base_price:
+                  v.base_price !== null && v.base_price !== undefined
+                    ? String(v.base_price)
+                    : "",
+                discount_type: v.discount_type || "percentage",
+                discount_value:
+                  v.discount_value !== null && v.discount_value !== undefined
+                    ? String(v.discount_value)
+                    : "0",
+              })),
+            );
+          } else {
+            setVariants([]);
+          }
+        } else {
+          setVariants([]);
+        }
+
+        if (editing.product_images) {
+          setProductImages(
+            editing.product_images.map((img) => ({
+              file: null,
+              preview: img.image_url,
+              isMain: img.is_main,
+            })),
+          );
+        }
+      } else {
+        resetForm();
+      }
+    };
+
+    loadEditingData();
+  }, [editing]);
+
+  const handleImagesChange = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length + productImages.length > 4) {
+      return Swal.fire("تنبيه", "4 صور كحد أقصى", "warning");
+    }
+
+    const options = {
+      maxSizeMB: 0.08,
+      maxWidthOrHeight: 1024,
+      useWebWorker: true,
+      fileType: "image/webp",
+    };
+    Swal.fire({
+      title: "جاري معالجة الصور...",
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    try {
+      const newImages = [];
+      for (const file of files) {
+        const compressed = await imageCompression(file, options);
+        newImages.push({
+          file: compressed,
+          preview: URL.createObjectURL(compressed),
+          isMain: false,
+        });
+      }
+      setProductImages((prev) => {
+        const combined = [...prev, ...newImages];
+        if (combined.length > 0 && !combined.some((img) => img.isMain))
+          combined[0].isMain = true;
+        return combined.slice(0, 4);
+      });
+      Swal.close();
+    } catch (error) {
+      Swal.fire("خطأ", "حدث خطأ أثناء معالجة الصور", "error");
+    }
+  };
+
+  const moveImage = (index, direction) => {
+    const newArr = [...productImages];
+    const newPos = index + direction;
+    if (newPos < 0 || newPos >= newArr.length) return;
+    [newArr[index], newArr[newPos]] = [newArr[newPos], newArr[index]];
+    setProductImages(newArr);
+  };
+
+  const setAsMain = (index) => {
+    setProductImages((prev) =>
+      prev.map((img, i) => ({ ...img, isMain: i === index })),
+    );
+  };
+
+  const resetForm = () => {
+    // الحقول الأساسية
+    setName("");
+    setDescription("");
+    setDetailedDescription("");
+    setPrice("");
+    setDiscountValue("");
+    setDiscountType("percentage");
+    setIsAvailable(true);
+    setSubIds([]);
+    setBrandId("");
+    setYoutubeLink("");
+
+    // المصفوفات والقوائم
+    setIngredients([]);
+    setBenefits([]);
+    setUsageSteps([]);
+    setWarnings([]);
+    setProductImages([]);
+
+    // --- الإضافات الجديدة لتجربة مستخدم أفضل ---
+    setIsPills(false); // إعادة المنتج للوضع الافتراضي (ليس أقراص)
+    setVariants([]); // تفريغ مصفوفة العبوات تماماً
+
+    // المقارنة
+    setComparisonId("");
+    setComparisonText("");
+
+    // تنظيف حالة التعديل إذا وجدت
+    if (clearEdit) clearEdit();
+  };
+
+  const submit = async (e) => {
+    e.preventDefault();
+
+    // 1. التحقق من البيانات الأساسية
+    // ملاحظة: السعر (price) مطلوب فقط إذا لم يكن المنتج "أقراص"
+    const isPriceRequired = !isPills;
+    if (
+      !name ||
+      (isPriceRequired && !price) ||
+      subIds.length === 0 ||
+      !brandId ||
+      productImages.length === 0
+    ) {
+      return Swal.fire(
+        "بيانات ناقصة",
+        "يرجى ملء الحقول الأساسية وصورة واحدة على الأقل وقسم فرعي واحد على الأقل",
+        "warning",
+      );
+    }
+
+    // إذا كان أقراص، يجب التأكد من وجود عبوة واحدة على الأقل
+    if (isPills && variants.length === 0) {
+      return Swal.fire(
+        "بيانات ناقصة",
+        "يرجى إضافة حجم عبوة واحد على الأقل للمنتج الأقراص",
+        "warning",
+      );
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // تعريف productId مبدئياً من وضع التعديل
+      let productId = editing?.id;
+
+      // تجهيز بيانات المنتج (payload)
+      const payload = {
+        name,
+        description,
+        is_pills: isPills,
+        unit_type: isPills ? unitType : null, // حفظ نوع الوحدة فقط للمنتجات ذات الأحجام المتعددة
+        // إذا كان أقراص نأخذ سعر أول عبوة كقيمة افتراضية للعرض، وإلا نأخذ السعر العام
+        base_price: isPills
+          ? parseFloat(variants[0]?.base_price || 0)
+          : parseFloat(price),
+        detailed_description: detailedDescription,
+        discount_type: discountType,
+        discount_value: parseFloat(discountValue) || 0,
+        is_available: isAvailable,
+        subcategory_id: parseInt(subIds[0]), // نستخدم أول قسم فرعي للتوافق مع قاعدة البيانات الحالية
+        brand_id: parseInt(brandId),
+        youtube_link: youtubeLink,
+        ingredients: ingredients.filter((i) => i.trim() !== ""),
+        benefits: benefits.filter((b) => b.trim() !== ""),
+        usage_instructions: usageSteps.filter((s) => s.trim() !== ""),
+        warnings: warnings.filter((w) => w.trim() !== ""),
+        comparison_product_id: comparisonId ? parseInt(comparisonId) : null,
+        comparison_text: comparisonText,
+      };
+
+      // --- المرحلة الأولى: حفظ المنتج الأساسي ---
+      if (editing) {
+        const { data, error: updateError } = await supabase
+          .from("products")
+          .update(payload)
+          .eq("id", productId)
+          .select();
+
+        if (updateError) throw updateError;
+        if (!data || data.length === 0)
+          throw new Error("فشل التحديث: تأكد من صلاحياتك.");
+      } else {
+        const { data, error: insertError } = await supabase
+          .from("products")
+          .insert(payload)
+          .select();
+
+        if (insertError) throw insertError;
+        productId = data[0].id; // تعيين المعرف الجديد هنا
+      }
+
+      // --- المرحلة الثانية: إدارة العبوات (Variants) ---
+      // نقوم بها فقط إذا كان productId متاحاً
+      if (productId) {
+        // حذف العبوات القديمة دائماً عند التحديث أو التغيير لنظام الأقراص
+        await supabase
+          .from("product_variants")
+          .delete()
+          .eq("product_id", productId);
+
+        if (isPills && variants.length > 0) {
+          const variantsToInsert = variants.map((v) => ({
+            product_id: productId,
+            pill_count: parseInt(v.pill_count),
+            base_price: parseFloat(v.base_price),
+            discount_type: v.discount_type,
+            discount_value: parseFloat(v.discount_value),
+          }));
+
+          const { error: vError } = await supabase
+            .from("product_variants")
+            .insert(variantsToInsert);
+          if (vError) throw vError;
+        }
+
+        // --- إدارة الأقسام الفرعية (الجدول الوسيط) ---
+        // حذف الأقسام القديمة
+        await supabase
+          .from("product_subcategories")
+          .delete()
+          .eq("product_id", productId);
+
+        // إضافة الأقسام الجديدة
+        if (subIds.length > 0) {
+          const subCategoriesToInsert = subIds.map((subId) => ({
+            product_id: productId,
+            subcategory_id: parseInt(subId),
+          }));
+
+          const { error: subError } = await supabase
+            .from("product_subcategories")
+            .insert(subCategoriesToInsert);
+          if (subError) throw subError;
+        }
+      }
+
+      // --- المرحلة الثالثة: إدارة الصور ---
+      if (productId) {
+        const { data: dbImages } = await supabase
+          .from("product_images")
+          .select("id, image_url")
+          .eq("product_id", productId);
+
+        const dbUrls = dbImages?.map((img) => img.image_url) || [];
+        const currentUrls = productImages.map((img) => img.preview);
+
+        // تنظيف الملفات من الـ Storage
+        const urlsToDelete = dbUrls.filter((url) => !currentUrls.includes(url));
+        if (urlsToDelete.length > 0) {
+          const pathsToDelete = urlsToDelete
+            .filter((url) => url.includes("product-images/"))
+            .map((url) => url.split("product-images/")[1]);
+
+          if (pathsToDelete.length > 0) {
+            await supabase.storage.from("product-images").remove(pathsToDelete);
+          }
+        }
+
+        // مسح وإعادة إدخال سجلات الصور
+        await supabase
+          .from("product_images")
+          .delete()
+          .eq("product_id", productId);
+
+        for (let i = 0; i < productImages.length; i++) {
+          let finalUrl = productImages[i].preview;
+
+          if (productImages[i].file) {
+            const filePath = `${productId}/${Date.now()}_${i}.webp`;
+            const { error: uploadError } = await supabase.storage
+              .from("product-images")
+              .upload(filePath, productImages[i].file);
+
+            if (uploadError) throw uploadError;
+
+            finalUrl = supabase.storage
+              .from("product-images")
+              .getPublicUrl(filePath).data.publicUrl;
+          }
+
+          await supabase.from("product_images").insert({
+            product_id: productId,
+            image_url: finalUrl,
+            is_main: productImages[i].isMain,
+          });
+        }
+      }
+
+      // --- النهاية ---
+      await Swal.fire({
+        icon: "success",
+        title: editing ? "تم التحديث بنجاح" : "تمت الإضافة بنجاح",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
+      resetForm();
+      if (onDone) onDone();
+    } catch (err) {
+      console.error("Submit Error:", err);
+      Swal.fire("خطأ", "حدث خطأ: " + err.message, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <form
+      onSubmit={submit}
+      className="bg-white rounded-[2.5rem] shadow-2xl border-2 border-gray-100 overflow-hidden mb-12 text-right"
+      dir="rtl"
+    >
+      {/* Header */}
+      <div
+        className={`p-6 text-white flex justify-between items-center ${
+          editing ? "bg-blue-600" : "bg-gray-900"
+        }`}
+      >
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          {editing ? <Save /> : <PackagePlus />}{" "}
+          {editing ? "تعديل بيانات المنتج" : "إضافة منتج احترافي"}
+        </h2>
+        {editing && (
+          <button
+            type="button"
+            onClick={resetForm}
+            className="hover:rotate-90 transition-transform"
+          >
+            <X />
+          </button>
+        )}
+      </div>
+
+      <div className="p-8 space-y-10">
+        {/* صور المنتج */}
+        <div className="space-y-4">
+          <label className="font-bold text-gray-800 flex items-center gap-2">
+            صور المنتج{" "}
+            <span className="text-xs font-normal text-gray-400">
+              (4 صور كحد أقصى)
+            </span>
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            {productImages.map((img, i) => (
+              <div
+                key={i}
+                className={`relative group h-52 rounded-3xl overflow-hidden border-2 transition-all ${
+                  img.isMain ? "border-yellow-400 shadow-lg" : "border-gray-100"
+                }`}
+              >
+                <img
+                  src={img.preview}
+                  className="w-full h-full object-cover"
+                  alt="preview"
+                />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2">
+                  <div className="flex justify-between">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setProductImages((prev) =>
+                          prev.filter((_, idx) => idx !== i),
+                        )
+                      }
+                      className="bg-red-500 text-white p-1.5 rounded-xl"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAsMain(i)}
+                      className={`${
+                        img.isMain ? "bg-yellow-400" : "bg-white/20"
+                      } text-white p-1.5 rounded-xl`}
+                    >
+                      <Star size={16} fill={img.isMain ? "white" : "none"} />
+                    </button>
+                  </div>
+                  <div className="flex justify-center gap-4 bg-white/20 backdrop-blur-md rounded-xl p-1 text-white">
+                    <button type="button" onClick={() => moveImage(i, -1)}>
+                      <ArrowRight size={20} />
+                    </button>
+                    <button type="button" onClick={() => moveImage(i, 1)}>
+                      <ArrowLeft size={20} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {productImages.length < 4 && (
+              <label className="h-52 border-2 border-dashed border-gray-300 rounded-3xl flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 transition-all text-gray-400">
+                <Upload size={40} className="mb-2" />
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImagesChange}
+                  className="hidden"
+                />
+              </label>
+            )}
+          </div>
+        </div>
+
+        {/* الحقول الأساسية */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end">
+          <div className="md:col-span-2">
+            <InputGroup label="اسم المنتج" value={name} onChange={setName} />
+          </div>
+          <div
+            className="p-4 bg-gray-50 rounded-2xl border-2 border-gray-100 flex items-center justify-between cursor-pointer hover:bg-white transition-all group"
+            onClick={() => setIsAvailable(!isAvailable)}
+          >
+            <div className="flex items-center gap-3">
+              {isAvailable ? (
+                <CheckCircle2 className="text-green-500" />
+              ) : (
+                <AlertCircle className="text-red-400" />
+              )}
+              <span
+                className={`font-bold text-sm ${
+                  isAvailable ? "text-green-700" : "text-red-500"
+                }`}
+              >
+                {isAvailable ? "متوفر في المخزون" : "غير متوفر حالياً"}
+              </span>
+            </div>
+            <input
+              type="checkbox"
+              checked={isAvailable}
+              readOnly
+              className="w-5 h-5 accent-green-600"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {!isPills && (
+            <InputGroup
+              label="السعر الأساسي (EGP)"
+              value={price}
+              onChange={setPrice}
+              type="number"
+            />
+          )}
+
+          <div className="text-right">
+            <label className="text-sm font-bold text-gray-700 mb-2 block">
+              الماركة
+            </label>
+            <select
+              value={brandId}
+              onChange={(e) => setBrandId(e.target.value)}
+              className="w-full bg-white p-4 rounded-2xl border-2 border-gray-200 font-bold outline-none focus:border-blue-500"
+            >
+              <option value="">اختر الماركة</option>
+              {brands.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="text-right">
+            <label className="text-sm font-bold text-gray-700 mb-2 block">
+              الأقسام الفرعية
+              <span className="text-xs font-normal text-gray-400 mr-2">
+                (يمكن اختيار أكثر من قسم)
+              </span>
+            </label>
+            <button
+              type="button"
+              onClick={() => setIsSubCategoriesModalOpen(true)}
+              className="w-full bg-white p-4 rounded-2xl border-2 border-gray-200 font-bold outline-none focus:border-blue-500 text-right flex justify-between items-center hover:bg-gray-50 transition-colors"
+            >
+              <ChevronDown className="text-gray-400" size={20} />
+              <span
+                className={
+                  subIds.length > 0 ? "text-gray-800" : "text-gray-400"
+                }
+              >
+                {subIds.length > 0
+                  ? `${subIds.length} قسم${subIds.length > 1 ? " فرعي" : ""} محدد`
+                  : "اختر الأقسام الفرعية"}
+              </span>
+            </button>
+            {subIds.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {subIds.map((subId) => {
+                  const sub = subs.find((s) => s.id === subId);
+                  return sub ? (
+                    <span
+                      key={subId}
+                      className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-3 py-1 rounded-xl text-xs font-bold"
+                    >
+                      {sub.main_categories?.name} / {sub.name}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSubIds(subIds.filter((id) => id !== subId))
+                        }
+                        className="hover:text-red-500 transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                    </span>
+                  ) : null;
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* نوع المنتج ونظام الوحدات */}
+        <div className="space-y-4 mb-8">
+          <div
+            onClick={() => setIsPills(!isPills)}
+            className={`p-6 rounded-[2.5rem] border-2 cursor-pointer transition-all duration-300 flex items-center justify-between ${
+              isPills
+                ? "bg-blue-600 border-blue-400 text-white shadow-xl shadow-blue-100"
+                : "bg-gray-50 border-gray-100 text-gray-700 hover:border-blue-200"
+            }`}
+          >
+            <div className="flex items-center gap-4">
+              <div
+                className={`p-3 rounded-2xl ${isPills ? "bg-white/20" : "bg-blue-100 shadow-sm"}`}
+              >
+                <PackagePlus
+                  className={isPills ? "text-white" : "text-blue-600"}
+                />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">
+                  هذا المنتج عبارة عن (أحجام/كميات متعددة)
+                </h3>
+                <p
+                  className={`text-sm ${isPills ? "text-blue-100" : "text-gray-400"}`}
+                >
+                  {isPills
+                    ? "يتم الآن تحديد تسعير منفصل لكل حجم أو كمية"
+                    : "سيتم استخدام السعر العام الموحد للمنتج"}
+                </p>
+              </div>
+            </div>
+            <div
+              className={`w-14 h-7 rounded-full relative transition-all duration-300 ${isPills ? "bg-green-400" : "bg-gray-300"}`}
+            >
+              <div
+                className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all duration-300 ${isPills ? "right-8" : "right-1"}`}
+              />
+            </div>
+          </div>
+
+          {isPills && (
+            <div className="flex flex-wrap gap-3 animate-in fade-in zoom-in duration-300 px-2">
+              {[
+                { id: "pill", label: "أقراص", icon: "💊" },
+                { id: "ml", label: "ملي (ml)", icon: "🧪" },
+                { id: "gram", label: "جرام (g)", icon: "⚖️" },
+                { id: "size", label: "مقاس (Size)", icon: "📏" },
+              ].map((type) => (
+                <button
+                  key={type.id}
+                  type="button"
+                  onClick={() => setUnitType(type.id)}
+                  className={`flex-1 min-w-[100px] py-3 rounded-2xl border-2 font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                    unitType === type.id
+                      ? "border-blue-500 bg-blue-50 text-blue-700 shadow-sm"
+                      : "border-gray-100 bg-white text-gray-400 hover:border-gray-200"
+                  }`}
+                >
+                  <span>{type.icon}</span> {type.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* عرض العبوات المتعددة أو نظام الخصم العام */}
+        {isPills ? (
+          <div className="space-y-6 animate-in slide-in-from-top-4 duration-500 mb-10">
+            <div className="flex justify-between items-center bg-white p-2 pr-6 rounded-3xl border border-gray-100 shadow-sm">
+              <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                <span className="w-2 h-8 bg-blue-500 rounded-full inline-block mr-1"></span>
+                الأحجام والكميات المتوفرة
+              </h3>
+              <button
+                type="button"
+                onClick={addVariant}
+                className="bg-blue-600 text-white px-6 py-3 rounded-2xl text-sm font-bold hover:bg-blue-700 hover:shadow-lg transition-all flex items-center gap-2"
+              >
+                <Plus size={18} /> إضافة حجم جديد
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              {variants.map((variant, index) => {
+                const base = Number(variant.base_price) || 0;
+                const disc = Number(variant.discount_value) || 0;
+                const final =
+                  variant.discount_type === "percentage"
+                    ? base - base * (disc / 100)
+                    : base - disc;
+
+                return (
+                  <div
+                    key={index}
+                    className="group grid grid-cols-1 md:grid-cols-12 gap-6 p-6 bg-white border-2 border-gray-100 rounded-[2rem] shadow-sm hover:shadow-md hover:border-blue-100 transition-all relative overflow-hidden"
+                  >
+                    <div className="absolute -left-2 -bottom-4 text-6xl font-black text-gray-50 opacity-50 pointer-events-none">
+                      {index + 1}
+                    </div>
+                    <div className="md:col-span-3">
+                      <InputGroup
+                        label={
+                          unitType === "pill"
+                            ? "عدد الأقراص"
+                            : unitType === "ml"
+                              ? "الكمية (مل)"
+                              : unitType === "gram"
+                                ? "الوزن (جم)"
+                                : "المقاس"
+                        }
+                        value={variant.pill_count}
+                        onChange={(val) =>
+                          updateVariant(index, "pill_count", val)
+                        }
+                        type={unitType === "size" ? "text" : "number"}
+                        placeholder="مثال: 60"
+                      />
+                    </div>
+                    <div className="md:col-span-3">
+                      <InputGroup
+                        label="السعر الأساسي"
+                        value={variant.base_price}
+                        onChange={(val) =>
+                          updateVariant(index, "base_price", val)
+                        }
+                        type="number"
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <div className="md:col-span-4 space-y-2">
+                      <label className="text-sm font-bold text-gray-700 block">
+                        نظام الخصم
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          className="w-full bg-orange-50/50 p-4 rounded-2xl border-2 border-orange-100 focus:border-orange-300 outline-none font-bold text-orange-700"
+                          placeholder="الخصم"
+                          value={variant.discount_value}
+                          onChange={(e) =>
+                            updateVariant(
+                              index,
+                              "discount_value",
+                              e.target.value,
+                            )
+                          }
+                        />
+                        <select
+                          className="bg-orange-100 text-orange-700 rounded-2xl px-3 font-bold text-sm border-2 border-transparent focus:border-orange-300 outline-none"
+                          value={variant.discount_type}
+                          onChange={(e) =>
+                            updateVariant(
+                              index,
+                              "discount_type",
+                              e.target.value,
+                            )
+                          }
+                        >
+                          <option value="percentage">%</option>
+                          <option value="fixed">EGP</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="md:col-span-2 flex md:flex-col justify-center items-center gap-2 bg-gray-50 rounded-2xl p-3 border border-dashed border-gray-200">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                        السعر النهائي
+                      </span>
+                      <span className="text-lg font-black text-blue-600">
+                        {Math.max(0, final).toLocaleString()}{" "}
+                        <small className="text-[10px] mr-1">EGP</small>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setVariants(variants.filter((_, i) => i !== index))
+                        }
+                        className="absolute top-4 left-4 text-gray-300 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+              {variants.length === 0 && (
+                <div className="text-center p-12 border-2 border-dashed border-gray-100 rounded-[2.5rem]">
+                  <p className="text-gray-400 font-medium">
+                    لم يتم إضافة أي أحجام بعد
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="p-8 bg-gradient-to-br from-orange-50 to-white rounded-[2.5rem] border-2 border-orange-100 space-y-6 mb-10 animate-in fade-in duration-500">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-orange-500 rounded-xl text-white shadow-lg shadow-orange-100">
+                <Tag size={20} />
+              </div>
+              <h3 className="font-bold text-orange-800 text-lg">
+                نظام الخصم والعروض العام
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div>
+                <label className="text-sm font-bold text-orange-600 mb-2 block mr-2">
+                  نوع الخصم
+                </label>
+                <select
+                  value={discountType}
+                  onChange={(e) => setDiscountType(e.target.value)}
+                  className="w-full bg-white p-4 rounded-2xl border-2 border-orange-200 font-bold outline-none focus:ring-4 ring-orange-100 transition-all cursor-pointer"
+                >
+                  <option value="percentage">نسبة مئوية (%)</option>
+                  <option value="fixed">مبلغ ثابت (EGP)</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-bold text-orange-600 mb-2 block mr-2">
+                  قيمة الخصم
+                </label>
+                <input
+                  type="number"
+                  value={discountValue}
+                  onChange={(e) => setDiscountValue(e.target.value)}
+                  className="w-full bg-white p-4 rounded-2xl border-2 border-orange-200 font-bold outline-none focus:ring-4 ring-orange-100 transition-all"
+                  placeholder="0"
+                />
+              </div>
+              <div className="flex flex-col justify-center items-center bg-orange-600 rounded-[1.8rem] p-4 text-white shadow-xl shadow-orange-100 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                  <CheckCircle2 size={60} />
+                </div>
+                <span className="text-xs font-bold opacity-80 mb-1">
+                  السعر النهائي للدفع
+                </span>
+                <div className="text-3xl font-black flex items-baseline gap-1">
+                  {calculateFinalPrice().toLocaleString()}{" "}
+                  <span className="text-sm font-normal opacity-90">EGP</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* روابط ووصف */}
+        <div className="space-y-6">
+          <InputGroup
+            label="رابط يوتيوب"
+            value={youtubeLink}
+            onChange={setYoutubeLink}
+            placeholder="https://..."
+          />
+          <TextAreaGroup
+            label="وصف سريع"
+            value={description}
+            onChange={setDescription}
+            height="h-24"
+          />
+          <TextAreaGroup
+            label="الوصف المفصل"
+            value={detailedDescription}
+            onChange={setDetailedDescription}
+            height="h-40"
+          />
+        </div>
+
+        {/* القوائم الديناميكية */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+          <DynamicList
+            label="المكونات"
+            items={ingredients}
+            setter={setIngredients}
+            onAdd={() => addItem(setIngredients)}
+            onUpdate={updateItem}
+            onRemove={removeItem}
+            color="purple"
+          />
+          <DynamicList
+            label="الفوائد"
+            items={benefits}
+            setter={setBenefits}
+            onAdd={() => addItem(setBenefits)}
+            onUpdate={updateItem}
+            onRemove={removeItem}
+            color="green"
+          />
+          <DynamicList
+            label="طريقة الاستخدام"
+            items={usageSteps}
+            setter={setUsageSteps}
+            onAdd={() => addItem(setUsageSteps)}
+            onUpdate={updateItem}
+            onRemove={removeItem}
+            color="blue"
+          />
+          <DynamicList
+            label="التحذيرات"
+            items={warnings}
+            setter={setWarnings}
+            onAdd={() => addItem(setWarnings)}
+            onUpdate={updateItem}
+            onRemove={removeItem}
+            color="red"
+          />
+        </div>
+
+        {/* المكون الأساسي (المقارنة) */}
+        <div className="p-8 bg-slate-50 rounded-[2.5rem] border-2 border-slate-200 space-y-6">
+          <h3 className="font-bold text-slate-800 flex items-center gap-2">
+            <ArrowRightLeft className="text-blue-500" /> ميزة المقارنة الذكية
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="w-full p-4 rounded-2xl border-2 border-white bg-white shadow-sm font-bold flex justify-between items-center hover:bg-slate-100 transition-colors"
+            >
+              <span
+                className={comparisonId ? "text-slate-800" : "text-slate-400"}
+              >
+                {allProducts.find((p) => p.id === comparisonId)?.name ||
+                  "اختر منتجاً للمقارنة"}
+              </span>
+              <ChevronDown className="text-slate-400" size={20} />
+            </button>
+            <input
+              value={comparisonText}
+              onChange={(e) => setComparisonText(e.target.value)}
+              placeholder="وجه الاختلاف..."
+              className="w-full p-4 rounded-2xl border-2 border-white shadow-sm font-bold focus:outline-none focus:border-blue-500"
+            />
+          </div>
+
+          {/* Modal المقارنة */}
+          {isModalOpen && (
+            <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+              <div className="bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+                <div className="p-6 border-b flex justify-between items-center bg-slate-50">
+                  <h4 className="font-bold text-slate-800">
+                    اختر منتجاً للمقارنة
+                  </h4>
+                  <button
+                    onClick={() => setIsModalOpen(false)}
+                    className="p-2 hover:bg-slate-200 rounded-full transition-colors"
+                  >
+                    <X size={20} className="text-slate-500" />
+                  </button>
+                </div>
+                <div className="p-4 border-b">
+                  <div className="relative">
+                    <Search
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+                      size={18}
+                    />
+                    <input
+                      type="text"
+                      placeholder="ابحث عن منتج..."
+                      className="w-full pr-11 pl-4 py-3 bg-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="overflow-y-auto p-2">
+                  <button
+                    onClick={() => {
+                      setComparisonId("");
+                      setIsModalOpen(false);
+                    }}
+                    className="w-full p-4 flex justify-between items-center hover:bg-red-50 rounded-xl transition-all group border-b border-dashed mb-2"
+                  >
+                    <span className="font-semibold text-red-500">
+                      إلغاء المقارنة
+                    </span>
+                    {!comparisonId && (
+                      <Check size={18} className="text-red-500" />
+                    )}
+                  </button>
+                  {allProducts
+                    .filter((p) => p.id !== editing?.id)
+                    .filter((p) =>
+                      p.name.toLowerCase().includes(searchTerm.toLowerCase()),
+                    )
+                    .map((product) => (
+                      <button
+                        key={product.id}
+                        onClick={() => {
+                          setComparisonId(product.id);
+                          setIsModalOpen(false);
+                        }}
+                        className="w-full p-4 flex justify-between items-center hover:bg-blue-50 rounded-xl transition-all group"
+                      >
+                        <span className="font-semibold text-slate-700 group-hover:text-blue-600">
+                          {product.name}
+                        </span>
+                        {comparisonId === product.id && (
+                          <Check size={18} className="text-blue-500" />
+                        )}
+                      </button>
+                    ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Modal الأقسام الفرعية */}
+        {isSubCategoriesModalOpen && (
+          <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+            <div className="bg-white w-full max-w-md rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+              <div className="p-6 border-b flex justify-between items-center bg-slate-50">
+                <h4 className="font-bold text-slate-800">
+                  اختر الأقسام الفرعية
+                </h4>
+                <button
+                  onClick={() => setIsSubCategoriesModalOpen(false)}
+                  className="p-2 hover:bg-slate-200 rounded-full transition-colors"
+                >
+                  <X size={20} className="text-slate-500" />
+                </button>
+              </div>
+              <div className="p-4 border-b">
+                <div className="relative">
+                  <Search
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+                    size={18}
+                  />
+                  <input
+                    type="text"
+                    placeholder="ابحث عن قسم فرعي..."
+                    className="w-full pr-11 pl-4 py-3 bg-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => setSubCategoriesSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="overflow-y-auto p-2">
+                {subs
+                  .filter((s) =>
+                    s.name
+                      .toLowerCase()
+                      .includes(subCategoriesSearchTerm.toLowerCase()) ||
+                    s.main_categories?.name
+                      ?.toLowerCase()
+                      .includes(subCategoriesSearchTerm.toLowerCase()),
+                  )
+                  .map((sub) => {
+                    const isSelected = subIds.includes(sub.id);
+                    return (
+                      <button
+                        key={sub.id}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            setSubIds(subIds.filter((id) => id !== sub.id));
+                          } else {
+                            setSubIds([...subIds, sub.id]);
+                          }
+                        }}
+                        className={`w-full p-4 flex justify-between items-center rounded-xl transition-all group ${
+                          isSelected
+                            ? "bg-blue-50 hover:bg-blue-100"
+                            : "hover:bg-slate-50"
+                        }`}
+                      >
+                        <div className="text-right">
+                          <span
+                            className={`font-semibold block ${
+                              isSelected
+                                ? "text-blue-700"
+                                : "text-slate-700 group-hover:text-blue-600"
+                            }`}
+                          >
+                            {sub.name}
+                          </span>
+                          <span className="text-xs text-slate-400">
+                            {sub.main_categories?.name || "بدون قسم رئيسي"}
+                          </span>
+                        </div>
+                        {isSelected && (
+                          <Check size={18} className="text-blue-500" />
+                        )}
+                      </button>
+                    );
+                  })}
+                {subs.filter((s) =>
+                  s.name
+                    .toLowerCase()
+                    .includes(subCategoriesSearchTerm.toLowerCase()) ||
+                  s.main_categories?.name
+                    ?.toLowerCase()
+                    .includes(subCategoriesSearchTerm.toLowerCase()),
+                ).length === 0 && (
+                  <div className="text-center p-8 text-gray-400">
+                    <p>لا توجد نتائج</p>
+                  </div>
+                )}
+              </div>
+              <div className="p-4 border-t bg-slate-50 flex justify-between items-center">
+                <span className="text-sm text-slate-600 font-bold">
+                  {subIds.length} قسم محدد
+                </span>
+                <button
+                  onClick={() => setIsSubCategoriesModalOpen(false)}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-blue-700 transition-colors"
+                >
+                  تم
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer / Submit Button */}
+      <div className="p-8 bg-gray-50 border-t flex justify-end">
+        <button
+          disabled={isSubmitting}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-16 py-5 rounded-[1.5rem] font-bold flex items-center gap-3 shadow-xl transition-all disabled:opacity-50"
+        >
+          {isSubmitting ? (
+            <Loader2 className="animate-spin" />
+          ) : editing ? (
+            "تحديث المنتج الآن"
+          ) : (
+            "اعتماد وحفظ المنتج"
+          )}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+// المكونات المساعدة الخارجية
+function InputGroup({
+  label,
+  value,
+  onChange,
+  type = "text",
+  placeholder = "",
+}) {
+  return (
+    <div className="text-right">
+      <label className="text-sm font-bold text-gray-700 mb-2 block">
+        {label}
+      </label>
+      <input
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-white p-4 rounded-2xl border-2 border-gray-200 outline-none focus:border-blue-500 focus:ring-4 ring-blue-50 transition-all font-bold"
+      />
+    </div>
+  );
+}
+
+function TextAreaGroup({ label, value, onChange, height }) {
+  return (
+    <div className="text-right">
+      <label className="text-sm font-bold text-gray-700 mb-2 block">
+        {label}
+      </label>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`w-full bg-white p-4 rounded-2xl border-2 border-gray-200 outline-none focus:border-blue-500 focus:ring-4 ring-blue-50 transition-all font-medium ${height}`}
+      />
+    </div>
+  );
+}
+
+function DynamicList({
+  label,
+  items,
+  onAdd,
+  onUpdate,
+  onRemove,
+  setter,
+  color,
+}) {
+  const colors = {
+    purple: "text-purple-600 bg-purple-50",
+    green: "text-green-600 bg-green-50",
+    blue: "text-blue-600 bg-blue-50",
+    red: "text-red-600 bg-red-50",
+  };
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <label className="font-bold text-gray-800">{label}</label>
+        <button
+          type="button"
+          onClick={onAdd}
+          className={`p-1.5 rounded-xl ${colors[color]}`}
+        >
+          <Plus size={20} />
+        </button>
+      </div>
+      <div className="space-y-2">
+        {items.map((it, idx) => (
+          <div key={idx} className="flex gap-2">
+            <input
+              value={it}
+              onChange={(e) => onUpdate(idx, e.target.value, setter)}
+              className="flex-1 p-3 bg-white border-2 border-gray-100 rounded-xl text-sm font-bold"
+            />
+            <button
+              type="button"
+              onClick={() => onRemove(idx, setter)}
+              className="text-gray-300 hover:text-red-500"
+            >
+              <Trash2 size={18} />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const addItem = (setter) => setter((prev) => [...prev, ""]);
+const updateItem = (index, value, setter) => {
+  setter((prev) => {
+    const newArr = [...prev];
+    newArr[index] = value;
+    return newArr;
+  });
+};
+const removeItem = (index, setter) =>
+  setter((prev) => prev.filter((_, i) => i !== index));

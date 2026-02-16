@@ -53,6 +53,14 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
     product_images (id, image_url, is_main),
     product_variants (*),
     sub_categories:subcategory_id (id, name, category_id),
+    product_subcategories (
+      sub_categories (
+        id,
+        name,
+        category_id,
+        main_categories:category_id (id, name)
+      )
+    ),
     compared_with:comparison_product_id (
       id, 
       name, 
@@ -154,6 +162,23 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
       ? currentPriceData.discVal
       : Math.round((currentPriceData.discVal / currentPriceData.base) * 100);
 
+  const getUnitLabel = () => {
+    // دعم كل من unit_type (snake_case) و unitType (camelCase) إذا كانت موجودة في البيانات
+    const unit = product?.unit_type || product?.unitType || "pill";
+    switch (unit) {
+      case "pill":
+        return "أقراص";
+      case "ml":
+        return "مل";
+      case "gram":
+        return "جم";
+      case "size":
+        return "مقاس";
+      default:
+        return "أقراص"; // قيمة افتراضية
+    }
+  };
+
   const handleAddToCart = async () => {
     setAdding(true);
     await new Promise((r) => setTimeout(r, 600));
@@ -161,7 +186,7 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
       id: isPills ? `${product.id}-${selectedVariant.id}` : product.id,
       productId: product.id,
       name: isPills
-        ? `${product.name} (${selectedVariant.pill_count} قرص)`
+        ? `${product.name} (${selectedVariant.pill_count} ${getUnitLabel()})`
         : product.name,
       price: finalPrice,
       image: images[0]?.image_url, // الآن الصور معرفة ولن يحدث خطأ
@@ -242,17 +267,40 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
 
       {/* Breadcrumbs - مسار التصفح */}
       <div className="bg-white/80 backdrop-blur-sm sticky top-0 z-40 border-b border-[#C3CBB9]/20">
-        <nav className="max-w-7xl mx-auto px-6 md:px-12 py-4 flex items-center gap-3 text-xs font-black text-[#C3CBB9]">
+        <nav className="max-w-7xl mx-auto px-6 md:px-12 py-4 flex items-center gap-3 text-xs font-black text-[#C3CBB9] flex-wrap">
           <Link href="/" className="hover:text-[#5F6F52] transition-colors">
             الرئيسية
           </Link>
           <ChevronRight size={14} className="rotate-180" />
-          <Link
-            href={`/category/1/${product.sub_categories?.id}`}
-            className="hover:text-[#5F6F52] transition-all"
-          >
-            {product.sub_categories?.name}
-          </Link>
+          {/* عرض أول فئة فرعية من الجدول الوسيط أو الفئة الأساسية */}
+          {product.product_subcategories && product.product_subcategories.length > 0 ? (
+            <>
+              {product.product_subcategories[0].sub_categories?.main_categories && (
+                <>
+                  <Link
+                    href={`/category/${product.product_subcategories[0].sub_categories.main_categories.id}`}
+                    className="hover:text-[#5F6F52] transition-all"
+                  >
+                    {product.product_subcategories[0].sub_categories.main_categories.name}
+                  </Link>
+                  <ChevronRight size={14} className="rotate-180" />
+                </>
+              )}
+              <Link
+                href={`/category/${product.product_subcategories[0].sub_categories?.category_id}/${product.product_subcategories[0].sub_categories?.id}`}
+                className="hover:text-[#5F6F52] transition-all"
+              >
+                {product.product_subcategories[0].sub_categories?.name}
+              </Link>
+            </>
+          ) : product.sub_categories ? (
+            <Link
+              href={`/category/${product.sub_categories?.category_id}/${product.sub_categories?.id}`}
+              className="hover:text-[#5F6F52] transition-all"
+            >
+              {product.sub_categories?.name}
+            </Link>
+          ) : null}
           <ChevronRight size={14} className="rotate-180" />
           <span className="text-[#2D3436] truncate max-w-[150px]">
             {product.name}
@@ -305,7 +353,7 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                     >
                       <span className="text-lg">{variant.pill_count}</span>
                       <span className="text-[10px] uppercase opacity-80 font-black">
-                        قرص
+                        {getUnitLabel()}
                       </span>
                     </button>
                   ))}
@@ -313,7 +361,39 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-3">
+            {/* عرض جميع الفئات الفرعية */}
+            {product.product_subcategories && product.product_subcategories.length > 0 && (
+              <div className="space-y-3">
+                <span className="text-gray-400 text-[10px] font-black flex items-center gap-1 uppercase">
+                  <Tag size={12} /> الأقسام الفرعية
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {product.product_subcategories.map((psc, idx) => {
+                    const subCat = psc.sub_categories;
+                    if (!subCat) return null;
+                    return (
+                      <Link
+                        key={idx}
+                        href={`/category/${subCat.category_id}/${subCat.id}`}
+                        className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-[#C3CBB9]/20 hover:border-[#5F6F52]/40 hover:shadow-sm transition-all group"
+                      >
+                        <span className="text-[#2D3436] font-bold text-sm group-hover:text-[#5F6F52] transition-colors">
+                          {subCat.main_categories?.name && (
+                            <span className="text-gray-400 text-xs mr-1">
+                              {subCat.main_categories.name} /
+                            </span>
+                          )}
+                          {subCat.name}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* عرض القسم الفرعي الأساسي (للتوافق مع البيانات القديمة) */}
+            {(!product.product_subcategories || product.product_subcategories.length === 0) && product.sub_categories && (
               <Link
                 href={`/category/${product.sub_categories?.category_id}/${product.sub_categories?.id}`}
                 className="flex flex-col gap-1 bg-white p-4 rounded-2xl border border-[#C3CBB9]/20 hover:border-[#5F6F52]/40 hover:shadow-sm transition-all group"
@@ -325,7 +405,9 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                   {product.sub_categories?.name}
                 </span>
               </Link>
+            )}
 
+            <div className="grid grid-cols-2 gap-3">
               <Link
                 href={`/brand/${product.brand_id}`}
                 className="flex flex-col gap-1 bg-white p-4 rounded-2xl border border-[#C3CBB9]/20 hover:border-[#5F6F52]/40 hover:shadow-sm transition-all group"

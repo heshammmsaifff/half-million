@@ -1,0 +1,137 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.brands (
+  id bigint NOT NULL DEFAULT nextval('brands_id_seq'::regclass),
+  name text NOT NULL UNIQUE,
+  logo text,
+  created_at timestamp with time zone DEFAULT now(),
+  image_url text,
+  description text,
+  CONSTRAINT brands_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.card_images (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  image_url text NOT NULL,
+  category text CHECK (category = ANY (ARRAY['vitamin'::text, 'cosmetics'::text])),
+  display_order integer DEFAULT 0,
+  CONSTRAINT card_images_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.dashboard_pass (
+  id bigint NOT NULL DEFAULT nextval('dashboard_pass_id_seq'::regclass),
+  pass text NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT dashboard_pass_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.hero_slides (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  title text,
+  subtitle text,
+  image_url text NOT NULL,
+  link_url text,
+  is_active boolean DEFAULT true,
+  display_order integer DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT hero_slides_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.main_categories (
+  id bigint NOT NULL DEFAULT nextval('main_categories_id_seq'::regclass),
+  name text NOT NULL UNIQUE,
+  created_at timestamp with time zone DEFAULT now(),
+  description text,
+  image_url text,
+  CONSTRAINT main_categories_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.offers (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  name text NOT NULL,
+  description text,
+  old_price numeric NOT NULL,
+  new_price numeric NOT NULL,
+  image_url text,
+  CONSTRAINT offers_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.orders (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  customer_name text NOT NULL,
+  phone text NOT NULL,
+  address text NOT NULL,
+  city text NOT NULL,
+  total_price numeric NOT NULL,
+  items jsonb NOT NULL,
+  status text DEFAULT 'pending'::text,
+  secondary_phone text,
+  state text,
+  user_id uuid,
+  payment_method text DEFAULT 'cod'::text,
+  proof_image_url text,
+  rejection_reason text,
+  CONSTRAINT orders_pkey PRIMARY KEY (id),
+  CONSTRAINT orders_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.product_images (
+  id bigint NOT NULL DEFAULT nextval('product_images_id_seq'::regclass),
+  product_id bigint NOT NULL,
+  image_url text NOT NULL,
+  is_main boolean DEFAULT false,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT product_images_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_product FOREIGN KEY (product_id) REFERENCES public.products(id)
+);
+CREATE TABLE public.product_subcategories (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  product_id bigint NOT NULL,
+  subcategory_id bigint NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT product_subcategories_pkey PRIMARY KEY (id),
+  CONSTRAINT product_subcategories_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id),
+  CONSTRAINT product_subcategories_subcategory_id_fkey FOREIGN KEY (subcategory_id) REFERENCES public.sub_categories(id)
+);
+CREATE TABLE public.product_variants (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  product_id bigint,
+  pill_count integer,
+  base_price numeric,
+  discount_type text,
+  discount_value numeric,
+  is_available boolean DEFAULT true,
+  CONSTRAINT product_variants_pkey PRIMARY KEY (id),
+  CONSTRAINT product_variants_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id)
+);
+CREATE TABLE public.products (
+  id bigint NOT NULL DEFAULT nextval('products_id_seq'::regclass),
+  name text NOT NULL,
+  description text,
+  subcategory_id bigint NOT NULL,
+  brand_id bigint NOT NULL,
+  base_price numeric NOT NULL CHECK (base_price >= 0::numeric),
+  discount_type text CHECK (discount_type = ANY (ARRAY['percentage'::text, 'fixed'::text])),
+  discount_value numeric DEFAULT 0 CHECK (discount_value >= 0::numeric),
+  created_at timestamp with time zone DEFAULT now(),
+  is_available boolean NOT NULL DEFAULT true,
+  detailed_description text,
+  youtube_link text,
+  ingredients jsonb DEFAULT '[]'::jsonb,
+  benefits jsonb DEFAULT '[]'::jsonb,
+  usage_instructions jsonb DEFAULT '[]'::jsonb,
+  warnings jsonb DEFAULT '[]'::jsonb,
+  comparison_product_id bigint,
+  comparison_text text,
+  is_pills boolean DEFAULT false,
+  CONSTRAINT products_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_subcategory FOREIGN KEY (subcategory_id) REFERENCES public.sub_categories(id),
+  CONSTRAINT fk_brand FOREIGN KEY (brand_id) REFERENCES public.brands(id),
+  CONSTRAINT products_comparison_product_id_fkey FOREIGN KEY (comparison_product_id) REFERENCES public.products(id)
+);
+CREATE TABLE public.sub_categories (
+  id bigint NOT NULL DEFAULT nextval('sub_categories_id_seq'::regclass),
+  name text NOT NULL,
+  category_id bigint NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  description text,
+  CONSTRAINT sub_categories_pkey PRIMARY KEY (id),
+  CONSTRAINT fk_main_category FOREIGN KEY (category_id) REFERENCES public.main_categories(id)
+);
