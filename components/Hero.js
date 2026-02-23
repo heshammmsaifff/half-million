@@ -6,7 +6,6 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination, Navigation, EffectFade } from "swiper/modules";
 import { ChevronRight, ChevronLeft, ArrowLeftCircle } from "lucide-react";
 
-// استيراد تنسيقات Swiper
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
@@ -61,15 +60,16 @@ export default function HeroSection() {
         className="mySwiper  overflow-hidden shadow-2xl h-[400px] md:h-[550px]"
       >
         {slides.map((slide) => (
-          <SwiperSlide key={slide.id} className="relative w-full h-full">
-            {/* الصورة الخلفية مع طبقة تغميق متدرجة */}
-            <div className="absolute inset-0 bg-black/40 z-10" />
+          <SwiperSlide
+            key={slide.id}
+            className="relative w-full h-full bg-white"
+          >
+            <div className="absolute inset-0 bg-black/30 z-10" />
             <img
               src={slide.image_url}
               alt={slide.title}
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-contain"
             />
-
             {/* محتوى النص */}
             <div className="relative z-20 h-full flex flex-col justify-center items-start px-8 md:px-20 text-white space-y-4 md:space-y-6">
               {/* {slide.title && (
