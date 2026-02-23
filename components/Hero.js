@@ -42,6 +42,7 @@ export default function HeroSection() {
     <section className="relative w-full mx-auto pt-0.5" dir="rtl">
       <Swiper
         spaceBetween={30}
+        autoHeight={true}
         effect={"fade"}
         centeredSlides={true}
         autoplay={{
@@ -57,34 +58,27 @@ export default function HeroSection() {
           prevEl: ".hero-prev",
         }}
         modules={[Autoplay, Pagination, Navigation, EffectFade]}
-        className="mySwiper  overflow-hidden shadow-2xl h-[400px] md:h-[550px]"
+        className="mySwiper  overflow-hidden shadow-2xl h-auto md:h-[550px]"
       >
         {slides.map((slide) => (
-          <SwiperSlide
-            key={slide.id}
-            className="relative w-full h-full bg-white"
-          >
+          <SwiperSlide key={slide.id} className="relative w-full">
+            {/* طبقة التغميق - جعلناها مطلقة لتغطي الصورة فقط */}
             <div className="absolute inset-0 bg-black/30 z-10" />
+
             <img
               src={slide.image_url}
               alt={slide.title}
-              className="absolute inset-0 w-full h-full object-contain"
+              // في الموبايل: block و w-full لتأخذ الارتفاع الطبيعي
+              // في الشاشات الكبيرة: تعود absolute و object-contain لتناسب الارتفاع الثابت 550px
+              className="relative md:absolute inset-0 w-full h-auto md:h-full object-contain z-0 block"
             />
-            {/* محتوى النص */}
-            <div className="relative z-20 h-full flex flex-col justify-center items-start px-8 md:px-20 text-white space-y-4 md:space-y-6">
-              {/* {slide.title && (
-                <h2 className="text-3xl md:text-6xl font-black leading-tight drop-shadow-lg max-w-2xl animate-fade-in-up">
-                  {slide.title}
-                </h2>
-              )} */}
 
+            {/* محتوى النص - تأكد أنه فوق الصورة */}
+            <div className="absolute inset-0 z-20 flex flex-col justify-center items-start px-8 md:px-20 text-white space-y-4">
               {slide.link_url && (
-                <a
-                  href={slide.link_url}
-                  className="group flex items-center gap-3 bg-white text-black px-8 py-3 md:py-4 rounded-full font-bold text-lg hover:bg-gray-600 hover:text-white transition-all duration-300 transform hover:scale-105 shadow-xl"
-                >
+                <a href={slide.link_url} className="... (نفس الكلاسات)">
                   اكتشف الآن
-                  <ArrowLeftCircle className="w-6 h-6 transform group-hover:-translate-x-2 transition-transform" />
+                  <ArrowLeftCircle className="..." />
                 </a>
               )}
             </div>
