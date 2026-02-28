@@ -286,7 +286,7 @@ export default function AllProductsPage() {
                   <img
                     src={mainImg}
                     alt={product.name}
-                    className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ${isOutOfStock ? "grayscale opacity-60" : ""}`}
+                    className={`w-full h-full object-contain group-hover:scale-110 transition-transform duration-700 ${isOutOfStock ? "grayscale opacity-60" : ""}`}
                   />
 
                   {isOutOfStock && (

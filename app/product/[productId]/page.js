@@ -519,35 +519,7 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
         )}
 
         <div className="mt-24 space-y-16">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            {product.ingredients?.length > 0 && (
-              <div className="bg-white p-12 rounded-[3.5rem] border border-[#C3CBB9]/20 shadow-sm relative overflow-hidden">
-                <FlaskConical
-                  className="absolute -bottom-10 -left-10 text-[#F8F9F4]"
-                  size={200}
-                />
-                <h3 className="text-3xl font-black text-[#2D3436] mb-10 flex items-center gap-4 relative z-10">
-                  <div className="p-3 bg-[#5F6F52]/10 rounded-2xl text-[#5F6F52]">
-                    <FlaskConical size={32} />
-                  </div>
-                  المكونات
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
-                  {product.ingredients.map((ing, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center gap-4 p-5 bg-[#F8F9F4] rounded-[1.5rem] border border-[#C3CBB9]/10 hover:border-[#5F6F52]/30 transition-colors"
-                    >
-                      <div className="w-2 h-2 bg-[#5F6F52] rounded-full shadow-[0_0_8px_rgba(95,111,82,0.5)]"></div>
-                      <span className="text-sm font-black text-[#2D3436]">
-                        {ing}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
+          <div className="grid grid-cols-1 lg:grid-cols-1 gap-10">
             {product.benefits?.length > 0 && (
               <div className="bg-[#5F6F52] p-12 rounded-[3.5rem] shadow-xl relative overflow-hidden text-white">
                 <Star
@@ -573,6 +545,33 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                       <p className="font-bold text-[#F8F9F4] leading-relaxed italic">
                         {benefit}
                       </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {product.ingredients?.length > 0 && (
+              <div className="bg-white p-12 rounded-[3.5rem] border border-[#C3CBB9]/20 shadow-sm relative overflow-hidden">
+                <FlaskConical
+                  className="absolute -bottom-10 -left-10 text-[#F8F9F4]"
+                  size={200}
+                />
+                <h3 className="text-3xl font-black text-[#2D3436] mb-10 flex items-center gap-4 relative z-10">
+                  <div className="p-3 bg-[#5F6F52]/10 rounded-2xl text-[#5F6F52]">
+                    <FlaskConical size={32} />
+                  </div>
+                  المكونات
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 relative z-10">
+                  {product.ingredients.map((ing, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-4 p-5 bg-[#F8F9F4] rounded-[1.5rem] border border-[#C3CBB9]/10 hover:border-[#5F6F52]/30 transition-colors"
+                    >
+                      <div className="w-2 h-2 bg-[#5F6F52] rounded-full shadow-[0_0_8px_rgba(95,111,82,0.5)]"></div>
+                      <span className="text-sm font-black text-[#2D3436]">
+                        {ing}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -758,7 +757,7 @@ export default function ProductDetailsPage({ params: paramsPromise }) {
                       <div className="aspect-[4/5] bg-[#F8F9F4] rounded-[2rem] overflow-hidden mb-6 relative">
                         <img
                           src={pImg}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                          className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-1000"
                         />
                       </div>
                       <h4 className="font-black text-[#2D3436] line-clamp-1 group-hover:text-[#5F6F52] transition-colors tracking-tight text-lg">

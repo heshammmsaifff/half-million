@@ -212,8 +212,6 @@ export default function CheckoutPage() {
       const { error } = await supabase.from("orders").insert([orderData]);
       if (error) throw error;
 
-      // تحديث عدد مرات استخدام الكود في قاعدة البيانات
-      // استبدل الكود القديم بهذا السطر فقط بعد تنفيذ الـ SQL أعلاه
       if (discountInfo.code) {
         await supabase.rpc("increment_promo_usage", {
           code_param: discountInfo.code,

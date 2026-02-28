@@ -6,10 +6,12 @@ import LatestProducts from "@/components/LatestProducts";
 import LatestOffers from "@/components/LatestOffers";
 import BrandStory from "@/components/BrandStory";
 import BrandShowcase from "@/components/BrandShowcase";
+// import TempLoop from "@/components/TempLoop";
 
 export default function Page() {
   return (
     <div className="relative">
+      {/* <TempLoop /> */}
       <HeroSection />
       <BrandsSlider />
       <BrandShowcase />

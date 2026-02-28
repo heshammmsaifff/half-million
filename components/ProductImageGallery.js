@@ -14,7 +14,7 @@ export default function ProductImageGallery({ images, productName }) {
         <img
           src={activeImage}
           alt={productName}
-          className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110"
+          className="w-full h-full object-contain transition-all duration-700 ease-out group-hover:scale-110"
         />
 
         {/* طبقة حماية خفيفة (Overlay) تعطي فخامة */}

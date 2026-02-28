@@ -128,7 +128,7 @@ export default function LatestProducts() {
                   <img
                     src={mainImage}
                     alt={product.name}
-                    className={`w-full h-full object-cover transition-transform duration-700 ${
+                    className={`w-full h-full object-contain transition-transform duration-700 ${
                       isAvailable ? "group-hover:scale-105" : "grayscale"
                     }`}
                   />
